@@ -126,7 +126,7 @@
   }
   button:active { transform: translateY(4px); box-shadow: 0 0px 0 transparent !important;}
   
-  /* 各ボタンのカラーリング（元クラス名維持） */
+  /* 各ボタンのカラーリング */
   .btn-blue { background: var(--ketchup-red); width: 100%; font-size: 18px; padding: 15px; box-shadow: 0 6px 0 var(--ketchup-dark); letter-spacing: 1px;}
   .btn-blue:hover { background: #d32f2f; }
   
@@ -169,7 +169,7 @@
   .recipe-mats { margin: 8px 0 15px 0; padding-left: 20px; font-size: 15px; color: var(--meat-brown); font-weight: 700;}
   .sub-info { font-size: 13px; color: #888; font-weight: 400;}
 
-  /* 作成画面(カート)用 - ★ここを5列にしました★ */
+  /* 作成画面(カート)用 - 5列 */
   .calc-menu-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; }
   .calc-menu-btn { border: 3px solid #EEEEEE; padding: 10px; border-radius: 12px; text-align: center; cursor: pointer; background: #fff; transition: 0.2s; user-select: none; box-shadow: 0 4px 0 #EEEEEE; display: flex; flex-direction: column; align-items: center; justify-content: flex-start;}
   .calc-menu-btn:hover { border-color: var(--ketchup-red); background: #FFF5F5; transform: translateY(2px); box-shadow: 0 2px 0 var(--ketchup-red); }
@@ -178,13 +178,8 @@
   .calc-menu-title { font-size: 13px; font-weight: 800; line-height: 1.3; margin-bottom: 5px; color: var(--meat-brown); word-break: break-word;}
   .calc-menu-weight { font-size: 11px; color: #888; font-weight: 700; margin-top: auto;}
 
-  /* 画面が狭いスマホ等の場合は列数を減らす設定（おまけ） */
-  @media (max-width: 850px) {
-    .calc-menu-grid { grid-template-columns: repeat(4, 1fr); }
-  }
-  @media (max-width: 600px) {
-    .calc-menu-grid { grid-template-columns: repeat(3, 1fr); }
-  }
+  @media (max-width: 850px) { .calc-menu-grid { grid-template-columns: repeat(4, 1fr); } }
+  @media (max-width: 600px) { .calc-menu-grid { grid-template-columns: repeat(3, 1fr); } }
 
   /* カートリスト */
   .cart-list { list-style: none; padding: 0; margin: 0 0 15px 0; max-height: 400px; overflow-y: auto; }
@@ -213,24 +208,23 @@
 <body>
 
 <div class="header">
-  <h1>🍔 BurgerShot 🍟</h1>
+  <h1>🍔 FiveM BURGER SHOP 管理システム 🍟</h1>
 </div>
 
 <div class="container">
   <div id="syncStatus">✅ クラウドデータベースと同期中...</div>
 
-  <!-- タブボタン -->
+  <!-- タブボタン (新メニュー開発タブを押したときはフォームをリセットする) -->
   <div class="tab-container">
     <button id="btn-calc" class="tab-btn active" onclick="switchTab('tab-calc', this)">🛒 オーダー作成・計算</button>
     <button id="btn-recipes" class="tab-btn" onclick="switchTab('tab-recipes', this)">📖 レシピ帳を見る</button>
-    <button id="btn-create" class="tab-btn" onclick="switchTab('tab-create', this)">🍔 新メニュー開発</button>
+    <button id="btn-create" class="tab-btn" onclick="resetRecipeForm(); switchTab('tab-create', this)">🍔 新メニュー開発</button>
     <button id="btn-materials" class="tab-btn" onclick="switchTab('tab-materials', this)">⚙️ 食材・タグ仕入れ</button>
   </div>
 
   <!-- 【画面1】 🛒 まとめて作成(計算) -->
   <div id="tab-calc" class="tab-content active">
     <div class="flex-row">
-      <!-- 左側(メニュー一覧)の幅を広めにとる -->
       <div class="flex-col" style="flex: 2.5;">
         <h2>🍔 オーダーするメニューをタップ！</h2>
         <div class="filter-bar">
@@ -244,7 +238,7 @@
         <ul id="cartList" class="cart-list"></ul>
         <div style="background: white; padding: 15px; border-radius: 12px; border: 3px solid var(--ketchup-red); margin-bottom: 15px; text-align: center;">
           <div style="font-size: 15px; color: var(--ketchup-dark); font-weight: 800;">📦 料理の合計重量</div>
-          <div style="font-size: 32px; font-weight: 800; color: var(--ketchup-red);" id="cartTotalWeight">0.00g</div>
+          <div style="font-size: 32px; font-weight: 800; color: var(--ketchup-red);" id="cartTotalWeight">0.00kg</div>
         </div>
         <div style="border-top: 3px dashed #CCC; padding-top: 15px;">
           <strong style="font-size: 16px; color: var(--meat-brown);">🍳 倉庫から出す食材リスト:</strong>
@@ -265,18 +259,18 @@
     <div id="recipesList"></div>
   </div>
 
-  <!-- 【画面3】 メニュー(完成品)の登録 -->
+  <!-- 【画面3】 メニュー(完成品)の登録・編集 -->
   <div id="tab-create" class="tab-content">
-    <h2>🍔 新しいメニューを開発して登録</h2>
+    <h2 id="createTabTitle">🍔 新しいメニューを開発して登録</h2>
     <div class="form-group"><label>メニュー名</label><input type="text" id="itemName" placeholder="例: ダブルチーズバーガー"></div>
     <div class="form-group"><label>カテゴリー・タグ (複数選択可)</label><div id="recipeTagsContainer" style="margin-top: 5px;"></div></div>
     <div class="form-group"><label>画像URL</label><input type="text" id="itemImage" placeholder="Discordの画像リンクなどを貼り付け"></div>
-    <div class="form-group"><label>完成品の重さ (g)</label><input type="number" step="0.1" id="itemWeight" placeholder="例: 1.5"></div>
+    <div class="form-group"><label>完成品の重さ (kg)</label><input type="number" step="0.1" id="itemWeight" placeholder="例: 1.5"></div>
     <div class="form-group"><label>必要な食材 (プルダウンで選択)</label>
       <div id="recipeMaterialsContainer"></div>
       <button type="button" class="btn-green" onclick="addRecipeMaterialRow()">+ 食材の入力欄を追加</button>
     </div>
-    <button class="btn-blue" onclick="saveRecipe()">✨ メニューを保存 (全員に共有)</button>
+    <button id="saveRecipeBtn" class="btn-blue" onclick="saveRecipe()">✨ メニューを保存 (全員に共有)</button>
   </div>
 
   <!-- 【画面4】 素材・タグの設定 -->
@@ -285,7 +279,7 @@
       <div class="flex-col">
         <h2>🍅 新しい食材を仕入れリストに登録</h2>
         <div class="form-group"><label>食材名</label><input type="text" id="matName" placeholder="例: パティ、バンズ、トマト"></div>
-        <div class="form-group"><label>食材1個の重さ (g)</label><input type="number" step="0.01" id="matWeight" placeholder="例: 0.1"></div>
+        <div class="form-group"><label>食材1個の重さ (kg)</label><input type="number" step="0.01" id="matWeight" placeholder="例: 0.1"></div>
         <button class="btn-blue" onclick="saveMaterial()">食材を登録 (全員に共有)</button>
       </div>
       <div class="flex-col"><h2>📋 登録済みの食材一覧</h2><ul class="mat-list" id="materialsList"></ul></div>
@@ -327,6 +321,9 @@
   let recipes = [];
   let tags = ['メイン', 'ドリンク', 'サイド', 'セット']; 
   let cart = [];
+  
+  // 編集モード用の変数
+  let editRecipeIndex = null;
 
   // ==============================
   // Firebaseとのリアルタイム同期
@@ -367,7 +364,7 @@
   }
 
   // ==============================
-  // 各種保存・削除処理
+  // 各種保存・削除・編集処理
   // ==============================
   function saveTag() {
     const name = document.getElementById('tagName').value.trim();
@@ -400,6 +397,23 @@
     }
   }
 
+  // 新規作成＆編集時のフォームリセット処理
+  function resetRecipeForm() {
+    editRecipeIndex = null;
+    document.getElementById('itemName').value = ''; 
+    document.getElementById('itemImage').value = ''; 
+    document.getElementById('itemWeight').value = '';
+    document.getElementById('recipeMaterialsContainer').innerHTML = '';
+    document.querySelectorAll('.recipe-tag-checkbox').forEach(cb => cb.checked = false);
+    addRecipeMaterialRow();
+    
+    // UIの表記を「新規作成」に戻す
+    document.getElementById('createTabTitle').innerText = "🍔 新しいメニューを開発して登録";
+    document.getElementById('saveRecipeBtn').innerText = "✨ メニューを保存 (全員に共有)";
+    document.getElementById('saveRecipeBtn').style.background = "var(--ketchup-red)";
+    document.getElementById('saveRecipeBtn').style.boxShadow = "0 6px 0 var(--ketchup-dark)";
+  }
+
   function saveRecipe() {
     const name = document.getElementById('itemName').value.trim();
     const image = document.getElementById('itemImage').value.trim();
@@ -417,15 +431,53 @@
       }
     }
 
-    recipes.push({ name, image, weight: parseFloat(weight) || 0, materials: usedMaterials, tags: selectedTags });
+    const newRecipe = { name, image, weight: parseFloat(weight) || 0, materials: usedMaterials, tags: selectedTags };
+
+    if (editRecipeIndex !== null) {
+      // 編集モードなら上書き
+      recipes[editRecipeIndex] = newRecipe;
+    } else {
+      // 新規作成モードなら追加
+      recipes.push(newRecipe);
+    }
+    
     syncData(); 
-    
-    document.getElementById('itemName').value = ''; document.getElementById('itemImage').value = ''; document.getElementById('itemWeight').value = '';
-    document.getElementById('recipeMaterialsContainer').innerHTML = '';
-    document.querySelectorAll('.recipe-tag-checkbox').forEach(cb => cb.checked = false);
-    
-    addRecipeMaterialRow();
-    document.getElementById('btn-recipes').click();
+    resetRecipeForm(); // 保存後にフォームをリセット
+    document.getElementById('btn-recipes').click(); // レシピ帳に移動
+  }
+
+  // 編集モードを起動する関数
+  function editRecipe(index) {
+    const recipe = recipes[index];
+    editRecipeIndex = index;
+
+    // フォームに値をセット
+    document.getElementById('itemName').value = recipe.name;
+    document.getElementById('itemImage').value = recipe.image || '';
+    document.getElementById('itemWeight').value = recipe.weight;
+
+    // タグのチェックボックスを復元
+    document.querySelectorAll('.recipe-tag-checkbox').forEach(cb => {
+      cb.checked = recipe.tags && recipe.tags.includes(cb.value);
+    });
+
+    // 食材の行を復元
+    const container = document.getElementById('recipeMaterialsContainer');
+    container.innerHTML = '';
+    if (recipe.materials && recipe.materials.length > 0) {
+      recipe.materials.forEach(m => addRecipeMaterialRow(m.name, m.qty));
+    } else {
+      addRecipeMaterialRow();
+    }
+
+    // UIの表記を「編集」に変更
+    document.getElementById('createTabTitle').innerText = "🍔 既存メニューを編集する";
+    document.getElementById('saveRecipeBtn').innerText = "🔄 この内容で上書き更新する";
+    document.getElementById('saveRecipeBtn').style.background = "var(--mustard-dark)";
+    document.getElementById('saveRecipeBtn').style.boxShadow = "0 6px 0 #E65100";
+
+    // 編集画面へ移動
+    switchTab('tab-create', document.getElementById('btn-create'));
   }
 
   function deleteRecipe(index) {
@@ -459,21 +511,29 @@
     const list = document.getElementById('materialsList');
     list.innerHTML = '';
     materials.forEach((mat, index) => {
-      list.innerHTML += `<li><span><strong>${mat.name}</strong> <span style="color:#888; font-weight:normal;">(重さ: ${mat.weight}g)</span></span><button class="btn-red" onclick="deleteMaterial(${index})">削除</button></li>`;
+      list.innerHTML += `<li><span><strong>${mat.name}</strong> <span style="color:#888; font-weight:normal;">(重さ: ${mat.weight}kg)</span></span><button class="btn-red" onclick="deleteMaterial(${index})">削除</button></li>`;
     });
   }
 
-  function getMaterialOptionsHtml() {
+  // 引数に食材名が渡された場合は、その食材を選択状態にする
+  function getMaterialOptionsHtml(selectedMatName = '') {
     let html = '<option value="">-- 食材を選ぶ --</option>';
-    materials.forEach(mat => html += `<option value="${mat.name}">${mat.name} (重さ:${mat.weight}g)</option>`);
+    materials.forEach(mat => {
+      const isSelected = (mat.name === selectedMatName) ? 'selected' : '';
+      html += `<option value="${mat.name}" ${isSelected}>${mat.name} (重さ:${mat.weight}kg)</option>`;
+    });
     return html;
   }
 
-  function addRecipeMaterialRow() {
+  function addRecipeMaterialRow(matName = '', qty = '') {
     const container = document.getElementById('recipeMaterialsContainer');
     const row = document.createElement('div');
     row.className = 'material-row';
-    row.innerHTML = `<select class="recipe-mat-select">${getMaterialOptionsHtml()}</select><input type="number" class="recipe-mat-qty" placeholder="個数" min="1"><button type="button" class="btn-red" style="padding:12px; border-radius:10px;" onclick="this.parentElement.remove()">✖</button>`;
+    row.innerHTML = `
+      <select class="recipe-mat-select">${getMaterialOptionsHtml(matName)}</select>
+      <input type="number" class="recipe-mat-qty" placeholder="個数" min="1" value="${qty}">
+      <button type="button" class="btn-red" style="padding:12px; border-radius:10px;" onclick="this.parentElement.remove()">✖</button>
+    `;
     container.appendChild(row);
   }
 
@@ -500,7 +560,7 @@
           const matWeight = (materials.find(mat => mat.name === m.name) || {weight:0}).weight;
           const subTotal = matWeight * m.qty;
           totalMatWeight += subTotal;
-          matHtml += `<li>${m.name} × ${m.qty}個 <span class="sub-info">(食材の計: ${subTotal.toFixed(2)}g)</span></li>`;
+          matHtml += `<li>${m.name} × ${m.qty}個 <span class="sub-info">(食材の計: ${subTotal.toFixed(2)}kg)</span></li>`;
         });
       }
 
@@ -509,10 +569,15 @@
           <img src="${imgUrl}" class="item-image" alt="画像">
           <div class="item-details">
             <h3>${recipe.name}</h3><div style="margin-bottom:10px;">${tagsHtml}</div>
-            <div class="info-text">📦 <strong>完成品の重さ:</strong> ${recipe.weight}g</div>
-            <div class="info-text">🍳 <strong>必要な食材:</strong> (食材の総重量: ${totalMatWeight.toFixed(2)}g)</div>
+            <div class="info-text">📦 <strong>完成品の重さ:</strong> ${recipe.weight}kg</div>
+            <div class="info-text">🍳 <strong>必要な食材:</strong> (食材の総重量: ${totalMatWeight.toFixed(2)}kg)</div>
             <ul class="recipe-mats">${matHtml || '<li>なし</li>'}</ul>
-            <button class="btn-red" onclick="deleteRecipe(${realIndex})">🗑️ このメニューを削除</button>
+            
+            <!-- 編集ボタンと削除ボタン -->
+            <div style="display:flex; gap:10px; margin-top: 15px;">
+              <button class="btn-blue" style="flex:1; background: var(--mustard-dark); box-shadow: 0 4px 0 #E65100; font-size:14px; padding:10px;" onclick="editRecipe(${realIndex})">✏️ 編集する</button>
+              <button class="btn-red" style="flex:1; font-size:14px; padding:10px;" onclick="deleteRecipe(${realIndex})">🗑️ 削除する</button>
+            </div>
           </div>
         </div>
       `;
@@ -532,7 +597,7 @@
         <div class="calc-menu-btn" onclick="addToCart(${realIndex})">
           <img src="${imgUrl}" alt="画像">
           <div class="calc-menu-title">${recipe.name}</div>
-          <div class="calc-menu-weight">📦 重さ: ${recipe.weight}g</div>
+          <div class="calc-menu-weight">📦 重さ: ${recipe.weight}kg</div>
         </div>
       `;
     });
@@ -586,7 +651,7 @@
 
     if (cart.length === 0) {
       cartList.innerHTML = '<li style="color:#888; text-align:center; font-weight:normal; border:none; box-shadow:none;">左からメニューをタップして追加</li>';
-      totalWeightEl.innerText = '0.00㎏'; totalMaterialsEl.innerHTML = '<li style="color:#888; font-weight:normal;">なし</li>'; return;
+      totalWeightEl.innerText = '0.00kg'; totalMaterialsEl.innerHTML = '<li style="color:#888; font-weight:normal;">なし</li>'; return;
     }
 
     cart.forEach((item, index) => {
@@ -600,7 +665,7 @@
             <button class="btn-red" style="padding: 5px 10px; font-size:12px; margin-left: 10px;" onclick="removeCartItem(${index})">✖ 削除</button>
           </div>
           <div class="cart-controls">
-            <span style="font-size: 14px; color:#888;">📦 重さ: ${itemTotalWeight.toFixed(2)}g</span>
+            <span style="font-size: 14px; color:#888;">📦 重さ: ${itemTotalWeight.toFixed(2)}kg</span>
             <div style="display: flex; align-items: center;">
               <button class="btn-red cart-qty-btn" onclick="changeCartQty(${index}, -1)">-</button>
               <input type="number" class="cart-qty-input" value="${item.qty}" min="1" onchange="updateCartQty(${index}, this.value)">
@@ -621,7 +686,7 @@
       }
     });
 
-    totalWeightEl.innerText = totalWeight.toFixed(2) + 'g';
+    totalWeightEl.innerText = totalWeight.toFixed(2) + 'kg';
     totalMaterialsEl.innerHTML = '';
     let totalMatWeight = 0;
     
@@ -629,10 +694,10 @@
       const data = materialTotals[mName];
       const subTotalWeight = data.qty * data.weight;
       totalMatWeight += subTotalWeight;
-      totalMaterialsEl.innerHTML += `<li style="margin-bottom: 6px; font-size: 16px;">${mName} × <strong style="font-size:18px; color:var(--ketchup-red);">${data.qty}</strong> 個 <span class="sub-info">(重さ計: ${subTotalWeight.toFixed(2)}g)</span></li>`;
+      totalMaterialsEl.innerHTML += `<li style="margin-bottom: 6px; font-size: 16px;">${mName} × <strong style="font-size:18px; color:var(--ketchup-red);">${data.qty}</strong> 個 <span class="sub-info">(重さ計: ${subTotalWeight.toFixed(2)}kg)</span></li>`;
     }
     
-    totalMaterialsEl.innerHTML += `<li style="margin-top: 15px; border-top: 3px dashed #CCC; padding-top: 15px; list-style: none; margin-left: -20px; color:var(--ketchup-dark); font-weight:900; font-size:18px;">⚖️ 取り出す食材の総重量: ${totalMatWeight.toFixed(2)}g</li>`;
+    totalMaterialsEl.innerHTML += `<li style="margin-top: 15px; border-top: 3px dashed #CCC; padding-top: 15px; list-style: none; margin-left: -20px; color:var(--ketchup-dark); font-weight:900; font-size:18px;">⚖️ 取り出す食材の総重量: ${totalMatWeight.toFixed(2)}kg</li>`;
   }
 
   // 初回起動時のセットアップ
