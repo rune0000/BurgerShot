@@ -208,18 +208,18 @@
 <body>
 
 <div class="header">
-  <h1>🍔 FiveM BURGER SHOP 管理システム 🍟</h1>
+  <h1>🍔 FiveM 飲食店 管理システム 🍟</h1>
 </div>
 
 <div class="container">
   <div id="syncStatus">✅ クラウドデータベースと同期中...</div>
 
-  <!-- タブボタン (新メニュー開発タブを押したときはフォームをリセットする) -->
+  <!-- タブボタン -->
   <div class="tab-container">
     <button id="btn-calc" class="tab-btn active" onclick="switchTab('tab-calc', this)">🛒 オーダー作成・計算</button>
     <button id="btn-recipes" class="tab-btn" onclick="switchTab('tab-recipes', this)">📖 レシピ帳を見る</button>
     <button id="btn-create" class="tab-btn" onclick="resetRecipeForm(); switchTab('tab-create', this)">🍔 新メニュー開発</button>
-    <button id="btn-materials" class="tab-btn" onclick="switchTab('tab-materials', this)">⚙️ 食材・タグ仕入れ</button>
+    <button id="btn-materials" class="tab-btn" onclick="switchTab('tab-materials', this)">⚙️ 食材・タグ管理</button>
   </div>
 
   <!-- 【画面1】 🛒 まとめて作成(計算) -->
@@ -270,17 +270,17 @@
       <div id="recipeMaterialsContainer"></div>
       <button type="button" class="btn-green" onclick="addRecipeMaterialRow()">+ 食材の入力欄を追加</button>
     </div>
-    <button id="saveRecipeBtn" class="btn-blue" onclick="saveRecipe()">✨ メニューを保存 (全員に共有)</button>
+    <button id="saveRecipeBtn" class="btn-blue" onclick="saveRecipe()">✨ メニューを保存 (店舗メンバーに共有)</button>
   </div>
 
-  <!-- 【画面4】 素材・タグの設定 -->
+  <!-- 【画面4】 素材・タグの設定 + データバックアップ -->
   <div id="tab-materials" class="tab-content">
     <div class="flex-row" style="margin-bottom: 30px; border-bottom: 3px dashed #CCC; padding-bottom: 30px;">
       <div class="flex-col">
         <h2>🍅 新しい食材を仕入れリストに登録</h2>
         <div class="form-group"><label>食材名</label><input type="text" id="matName" placeholder="例: パティ、バンズ、トマト"></div>
         <div class="form-group"><label>食材1個の重さ (kg)</label><input type="number" step="0.01" id="matWeight" placeholder="例: 0.1"></div>
-        <button class="btn-blue" onclick="saveMaterial()">食材を登録 (全員に共有)</button>
+        <button class="btn-blue" onclick="saveMaterial()">食材を登録 (店舗メンバーに共有)</button>
       </div>
       <div class="flex-col"><h2>📋 登録済みの食材一覧</h2><ul class="mat-list" id="materialsList"></ul></div>
     </div>
@@ -288,9 +288,27 @@
       <div class="flex-col">
         <h2>🏷️ 新しいカテゴリー(タグ)を作る</h2>
         <div class="form-group"><label>カテゴリー名</label><input type="text" id="tagName" placeholder="例: ドリンク、セット、期間限定"></div>
-        <button class="btn-blue" style="background:var(--mustard-dark); box-shadow: 0 6px 0 #E65100;" onclick="saveTag()">タグを登録 (全員に共有)</button>
+        <button class="btn-blue" style="background:var(--mustard-dark); box-shadow: 0 6px 0 #E65100;" onclick="saveTag()">タグを登録 (店舗メンバーに共有)</button>
       </div>
       <div class="flex-col"><h2>📋 登録済みのカテゴリー</h2><ul class="mat-list" id="tagsList"></ul></div>
+    </div>
+
+    <!-- 💾 データ管理セクション（エクスポート/インポート） -->
+    <div class="flex-row" style="margin-top: 30px; border-top: 3px dashed #CCC; padding-top: 30px;">
+      <div class="flex-col" style="flex: 100%;">
+        <h2>💾 データ管理（バックアップと復元）</h2>
+        <div style="background: white; padding: 25px; border-radius: 15px; border: 3px solid #EEE; display: flex; gap: 30px; align-items: center; flex-wrap: wrap;">
+          <div style="flex: 1; min-width: 250px;">
+            <p style="margin-top: 0; font-weight: 700; color: var(--meat-brown);">現在のお店の全データを、JSONファイルとしてパソコンにダウンロードします。</p>
+            <button class="btn-blue" style="width: 100%; background: #2196F3; box-shadow: 0 6px 0 #1565C0;" onclick="exportData()">📥 データをダウンロード保存</button>
+          </div>
+          <div style="flex: 1; min-width: 250px;">
+            <p style="margin-top: 0; font-weight: 700; color: var(--meat-brown);">保存したJSONファイルを読み込んで、お店のデータを上書き復元します。</p>
+            <input type="file" id="importFile" accept=".json" style="display: none;" onchange="importData(event)">
+            <button class="btn-blue" style="width: 100%; background: #4CAF50; box-shadow: 0 6px 0 #2E7D32;" onclick="document.getElementById('importFile').click()">📤 データをアップロードして復元</button>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -310,9 +328,11 @@
     measurementId: "G-8TSHYB31Z9"
   };
   
-  // Firebaseの初期化
   firebase.initializeApp(firebaseConfig);
   const db = firebase.database();
+  
+  // ★元通り、全員が同じデータベースを見るように戻しました
+  const dbRef = db.ref('fivem_data');
 
   // ==============================
   // データの変数
@@ -321,14 +341,12 @@
   let recipes = [];
   let tags = ['メイン', 'ドリンク', 'サイド', 'セット']; 
   let cart = [];
-  
-  // 編集モード用の変数
   let editRecipeIndex = null;
 
   // ==============================
   // Firebaseとのリアルタイム同期
   // ==============================
-  db.ref('fivem_data').on('value', (snapshot) => {
+  dbRef.on('value', (snapshot) => {
     document.getElementById('syncStatus').style.display = 'block';
     
     const data = snapshot.val() || {};
@@ -346,7 +364,7 @@
   });
 
   function syncData() {
-    db.ref('fivem_data').set({
+    dbRef.set({
       materials: materials,
       recipes: recipes,
       tags: tags
@@ -397,7 +415,6 @@
     }
   }
 
-  // 新規作成＆編集時のフォームリセット処理
   function resetRecipeForm() {
     editRecipeIndex = null;
     document.getElementById('itemName').value = ''; 
@@ -407,9 +424,8 @@
     document.querySelectorAll('.recipe-tag-checkbox').forEach(cb => cb.checked = false);
     addRecipeMaterialRow();
     
-    // UIの表記を「新規作成」に戻す
     document.getElementById('createTabTitle').innerText = "🍔 新しいメニューを開発して登録";
-    document.getElementById('saveRecipeBtn').innerText = "✨ メニューを保存 (全員に共有)";
+    document.getElementById('saveRecipeBtn').innerText = "✨ メニューを保存 (店舗メンバーに共有)";
     document.getElementById('saveRecipeBtn').style.background = "var(--ketchup-red)";
     document.getElementById('saveRecipeBtn').style.boxShadow = "0 6px 0 var(--ketchup-dark)";
   }
@@ -434,34 +450,28 @@
     const newRecipe = { name, image, weight: parseFloat(weight) || 0, materials: usedMaterials, tags: selectedTags };
 
     if (editRecipeIndex !== null) {
-      // 編集モードなら上書き
       recipes[editRecipeIndex] = newRecipe;
     } else {
-      // 新規作成モードなら追加
       recipes.push(newRecipe);
     }
     
     syncData(); 
-    resetRecipeForm(); // 保存後にフォームをリセット
-    document.getElementById('btn-recipes').click(); // レシピ帳に移動
+    resetRecipeForm();
+    document.getElementById('btn-recipes').click();
   }
 
-  // 編集モードを起動する関数
   function editRecipe(index) {
     const recipe = recipes[index];
     editRecipeIndex = index;
 
-    // フォームに値をセット
     document.getElementById('itemName').value = recipe.name;
     document.getElementById('itemImage').value = recipe.image || '';
     document.getElementById('itemWeight').value = recipe.weight;
 
-    // タグのチェックボックスを復元
     document.querySelectorAll('.recipe-tag-checkbox').forEach(cb => {
       cb.checked = recipe.tags && recipe.tags.includes(cb.value);
     });
 
-    // 食材の行を復元
     const container = document.getElementById('recipeMaterialsContainer');
     container.innerHTML = '';
     if (recipe.materials && recipe.materials.length > 0) {
@@ -470,13 +480,11 @@
       addRecipeMaterialRow();
     }
 
-    // UIの表記を「編集」に変更
     document.getElementById('createTabTitle').innerText = "🍔 既存メニューを編集する";
     document.getElementById('saveRecipeBtn').innerText = "🔄 この内容で上書き更新する";
     document.getElementById('saveRecipeBtn').style.background = "var(--mustard-dark)";
     document.getElementById('saveRecipeBtn').style.boxShadow = "0 6px 0 #E65100";
 
-    // 編集画面へ移動
     switchTab('tab-create', document.getElementById('btn-create'));
   }
 
@@ -486,6 +494,66 @@
       syncData();
       cart = cart.filter(item => item.recipe.name !== recipes[index]?.name);
     }
+  }
+
+  // ==============================
+  // 💾 JSONのダウンロード(エクスポート)・アップロード(インポート)
+  // ==============================
+  function exportData() {
+    const dataToExport = {
+      materials: materials,
+      recipes: recipes,
+      tags: tags
+    };
+    const jsonStr = JSON.stringify(dataToExport, null, 2);
+    const blob = new Blob([jsonStr], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    
+    const a = document.createElement("a");
+    a.href = url;
+    
+    // ダウンロードされるファイル名
+    const d = new Date();
+    const dateStr = `${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, '0')}${String(d.getDate()).padStart(2, '0')}`;
+    a.download = `burger_shop_data_${dateStr}.json`;
+    
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+
+  function importData(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      try {
+        const importedData = JSON.parse(e.target.result);
+        
+        if (confirm("🚨 注意 🚨\n現在クラウド上にあるデータは全て消去され、アップロードしたファイルの内容で【すべて上書き】されます。\n本当に復元してよろしいですか？")) {
+          // Firebaseに保存（上書き同期）
+          dbRef.set({
+            materials: importedData.materials || [],
+            recipes: importedData.recipes || [],
+            tags: importedData.tags || ['メイン', 'ドリンク', 'サイド', 'セット']
+          }).then(() => {
+            alert("✅ データのアップロード（復元）が完了しました！\n数秒後にお店のメンバー全員の画面に反映されます。");
+            event.target.value = ''; // ファイル入力をリセット
+          }).catch(error => {
+            alert("❌ エラーが発生しました: " + error.message);
+            event.target.value = '';
+          });
+        } else {
+          event.target.value = ''; // キャンセル時もリセット
+        }
+      } catch (error) {
+        alert("❌ ファイルの読み込みに失敗しました。\n保存した正しいJSONファイルを選択してください。");
+        event.target.value = '';
+      }
+    };
+    reader.readAsText(file);
   }
 
   // ==============================
@@ -515,7 +583,6 @@
     });
   }
 
-  // 引数に食材名が渡された場合は、その食材を選択状態にする
   function getMaterialOptionsHtml(selectedMatName = '') {
     let html = '<option value="">-- 食材を選ぶ --</option>';
     materials.forEach(mat => {
@@ -573,7 +640,6 @@
             <div class="info-text">🍳 <strong>必要な食材:</strong> (食材の総重量: ${totalMatWeight.toFixed(2)}kg)</div>
             <ul class="recipe-mats">${matHtml || '<li>なし</li>'}</ul>
             
-            <!-- 編集ボタンと削除ボタン -->
             <div style="display:flex; gap:10px; margin-top: 15px;">
               <button class="btn-blue" style="flex:1; background: var(--mustard-dark); box-shadow: 0 4px 0 #E65100; font-size:14px; padding:10px;" onclick="editRecipe(${realIndex})">✏️ 編集する</button>
               <button class="btn-red" style="flex:1; font-size:14px; padding:10px;" onclick="deleteRecipe(${realIndex})">🗑️ 削除する</button>
@@ -613,14 +679,12 @@
     renderCart();
   }
 
-  // プラスマイナスボタン用
   function changeCartQty(index, amount) {
     cart[index].qty += amount;
     if (cart[index].qty <= 0) cart.splice(index, 1);
     renderCart();
   }
 
-  // 手打ち入力用
   function updateCartQty(index, value) {
     let newQty = parseInt(value, 10);
     if (isNaN(newQty) || newQty <= 0) {
@@ -631,7 +695,6 @@
     renderCart();
   }
 
-  // 1発でゴミ箱に入れる用
   function removeCartItem(index) {
     cart.splice(index, 1);
     renderCart();
