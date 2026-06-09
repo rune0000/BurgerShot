@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>FiveM 飲食店レシピ管理</title>
+<title>FiveM 飲食店レシピ・素材管理 (バーガーショップUI版)</title>
 <!-- Firebaseの読み込み -->
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
@@ -27,6 +27,7 @@
     --bg-cream: #FFFDF7;
   }
 
+  /* 全体のベース設定（フォントと背景） */
   body { 
     font-family: 'M PLUS Rounded 1c', sans-serif; 
     margin: 0; 
@@ -37,9 +38,10 @@
     color: var(--meat-brown); 
   }
 
+  /* お店の看板風ヘッダー */
   .header { 
     text-align: center; 
-    margin-bottom: 20px; 
+    margin-bottom: 30px; 
     background-color: var(--ketchup-red);
     color: white;
     padding: 25px 20px;
@@ -48,44 +50,50 @@
   }
   .header h1 {
     margin: 0;
-    font-size: 26px;
+    font-size: 28px;
     font-weight: 800;
     letter-spacing: 2px;
     text-shadow: 2px 2px 0px var(--ketchup-dark);
   }
-  .store-badge {
-    display: inline-block;
-    background: var(--mustard-yellow);
-    color: var(--meat-brown);
-    padding: 4px 12px;
-    border-radius: 20px;
-    font-size: 16px;
-    margin-bottom: 10px;
-    box-shadow: 0 3px 0 var(--mustard-dark);
-    border: 2px solid #FFF;
-  }
 
   .container { max-width: 1050px; margin: auto; padding: 0 15px;}
   
+  /* タブのスタイル（バンズ風） */
   .tab-container { display: flex; border-bottom: 6px solid var(--mustard-yellow); gap: 5px; flex-wrap: wrap; margin-bottom: 0;}
   .tab-btn { 
-    background: #FFF; border: 3px solid #E0E0E0; border-bottom: none;
-    padding: 14px 18px; font-size: 16px; cursor: pointer; 
-    border-radius: 15px 15px 0 0; margin-bottom: 0px; 
-    color: #888; outline: none; transition: 0.2s; font-weight: 800;
+    background: #FFF; 
+    border: 3px solid #E0E0E0; 
+    border-bottom: none;
+    padding: 14px 18px; 
+    font-size: 16px; 
+    cursor: pointer; 
+    border-radius: 15px 15px 0 0; 
+    margin-bottom: 0px; 
+    color: #888; 
+    outline: none; 
+    transition: 0.2s; 
+    font-weight: 800;
     font-family: 'M PLUS Rounded 1c', sans-serif; 
   }
   .tab-btn:hover { background: var(--bun-color); color: var(--meat-brown);}
   .tab-btn.active { 
-    background: var(--mustard-yellow); color: var(--meat-brown); 
-    border: 3px solid var(--mustard-yellow); border-bottom: 6px solid var(--mustard-yellow); 
-    margin-bottom: -6px; z-index: 1; 
+    background: var(--mustard-yellow); 
+    color: var(--meat-brown); 
+    border: 3px solid var(--mustard-yellow); 
+    border-bottom: 6px solid var(--mustard-yellow); 
+    margin-bottom: -6px;
+    z-index: 1; 
   }
   
+  /* タブの中身のスタイル */
   .tab-content { 
-    display: none; background: #fff; padding: 30px; 
-    border: 6px solid var(--mustard-yellow); border-top: none; 
-    border-radius: 0 0 20px 20px; box-shadow: 0 8px 15px rgba(255, 202, 40, 0.2); 
+    display: none; 
+    background: #fff; 
+    padding: 30px; 
+    border: 6px solid var(--mustard-yellow); 
+    border-top: none; 
+    border-radius: 0 0 20px 20px; 
+    box-shadow: 0 8px 15px rgba(255, 202, 40, 0.2); 
   }
   .tab-content.active { display: block; }
 
@@ -94,16 +102,23 @@
   .form-group { margin-bottom: 18px; }
   label { display: block; font-weight: 800; margin-bottom: 8px; font-size: 15px; color: var(--meat-brown);}
   
+  /* 入力欄 */
   input[type="text"], input[type="number"], select { 
     width: 100%; padding: 12px; box-sizing: border-box; 
     border: 3px solid #E0E0E0; border-radius: 10px; 
-    font-family: 'M PLUS Rounded 1c', sans-serif; font-size: 15px;
-    font-weight: 700; color: var(--meat-brown); transition: 0.2s;
+    font-family: 'M PLUS Rounded 1c', sans-serif; 
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--meat-brown);
+    transition: 0.2s;
   }
   input[type="text"]:focus, input[type="number"]:focus, select:focus {
-    border-color: var(--mustard-yellow); outline: none; box-shadow: 0 0 0 3px rgba(255, 202, 40, 0.3);
+    border-color: var(--mustard-yellow);
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(255, 202, 40, 0.3);
   }
   
+  /* 立体的なポップボタン */
   button { 
     padding: 12px 20px; color: white; border: none; border-radius: 12px; cursor: pointer; 
     font-weight: 800; font-size: 15px; font-family: 'M PLUS Rounded 1c', sans-serif; 
@@ -111,16 +126,21 @@
   }
   button:active { transform: translateY(4px); box-shadow: 0 0px 0 transparent !important;}
   
+  /* 各ボタンのカラーリング */
   .btn-blue { background: var(--ketchup-red); width: 100%; font-size: 18px; padding: 15px; box-shadow: 0 6px 0 var(--ketchup-dark); letter-spacing: 1px;}
   .btn-blue:hover { background: #d32f2f; }
+  
   .btn-green { background: var(--lettuce-green); margin-bottom: 10px; font-size: 14px; box-shadow: 0 4px 0 var(--lettuce-dark);}
   .btn-green:hover { background: #689f38; }
+  
   .btn-red { background: #757575; padding: 8px 15px; font-size: 13px; box-shadow: 0 4px 0 #424242;}
   .btn-red:hover { background: #616161; }
 
+  /* レイアウト用 */
   .flex-row { display: flex; gap: 25px; flex-wrap: wrap; }
   .flex-col { flex: 1 1 320px; }
 
+  /* リスト用 */
   .mat-list { list-style: none; padding: 0; margin: 0; max-height: 250px; overflow-y: auto; border: 3px solid #EEEEEE; border-radius: 12px; }
   .mat-list li { display: flex; justify-content: space-between; align-items: center; padding: 12px 15px; border-bottom: 2px solid #EEEEEE; font-size: 15px; font-weight: 700;}
   .mat-list li:nth-child(even) { background: #FAFAFA; }
@@ -129,14 +149,17 @@
   .material-row select { flex: 2; }
   .material-row input { flex: 1; }
 
+  /* フィルターバー */
   .filter-bar { background: var(--bun-color); padding: 15px 20px; border-radius: 12px; margin-bottom: 20px; border: 3px solid var(--mustard-yellow); display: flex; align-items: center; gap: 10px; font-weight: 800;}
   .filter-bar select { border-color: white; background: white;}
   
+  /* タグバッジ */
   .tag-badge { display: inline-block; background: var(--mustard-dark); color: #fff; padding: 6px 12px; border-radius: 20px; font-size: 13px; font-weight: 800; margin-right: 5px; margin-bottom: 8px; box-shadow: 0 2px 0 #FF6F00;}
   .tag-checkbox-label { display: inline-block; background: #fff; border: 3px solid #E0E0E0; padding: 8px 18px; border-radius: 25px; margin-right: 10px; margin-bottom: 10px; cursor: pointer; font-size: 15px; font-weight: 700; user-select: none; transition: 0.2s;}
   .tag-checkbox-label:hover { border-color: var(--mustard-yellow); background: var(--bun-color);}
   .tag-checkbox-label input { margin-right: 8px; cursor: pointer; transform: scale(1.2);}
 
+  /* メニューのカード */
   .item-card { border: 3px solid #EEEEEE; padding: 20px; border-radius: 15px; margin-bottom: 20px; display: flex; gap: 20px; background: #FFF; transition: 0.2s; box-shadow: 0 4px 6px rgba(0,0,0,0.05);}
   .item-card:hover { border-color: var(--mustard-yellow); transform: translateY(-3px); box-shadow: 0 8px 15px rgba(255, 202, 40, 0.2);}
   .item-image { width: 120px; height: 120px; object-fit: cover; border-radius: 12px; border: 3px solid #EEEEEE; background: #fafafa; }
@@ -146,6 +169,7 @@
   .recipe-mats { margin: 8px 0 15px 0; padding-left: 20px; font-size: 15px; color: var(--meat-brown); font-weight: 700;}
   .sub-info { font-size: 13px; color: #888; font-weight: 400;}
 
+  /* 作成画面(カート)用 - 5列 */
   .calc-menu-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; }
   .calc-menu-btn { border: 3px solid #EEEEEE; padding: 10px; border-radius: 12px; text-align: center; cursor: pointer; background: #fff; transition: 0.2s; user-select: none; box-shadow: 0 4px 0 #EEEEEE; display: flex; flex-direction: column; align-items: center; justify-content: flex-start;}
   .calc-menu-btn:hover { border-color: var(--ketchup-red); background: #FFF5F5; transform: translateY(2px); box-shadow: 0 2px 0 var(--ketchup-red); }
@@ -157,28 +181,40 @@
   @media (max-width: 850px) { .calc-menu-grid { grid-template-columns: repeat(4, 1fr); } }
   @media (max-width: 600px) { .calc-menu-grid { grid-template-columns: repeat(3, 1fr); } }
 
+  /* カートリスト */
   .cart-list { list-style: none; padding: 0; margin: 0 0 15px 0; max-height: 400px; overflow-y: auto; }
   .cart-list li { display: flex; flex-direction: column; gap: 8px; padding: 15px; border-bottom: none; background: #fff; border: 3px solid #EEE; border-radius: 12px; margin-bottom: 10px; box-shadow: 0 4px 0 #EEE; }
   .cart-list-title { font-weight: 800; font-size: 16px; color: var(--meat-brown);}
   .cart-controls { display: flex; justify-content: space-between; align-items: center; width: 100%; margin-top: 5px;}
   .cart-qty-btn { padding: 5px 15px; font-size: 18px; border-radius: 8px; font-weight: 900;}
-  .cart-qty-input { width: 65px !important; text-align: center; font-size: 18px !important; font-weight: 900 !important; padding: 6px !important; margin: 0 5px; border: 3px solid #E0E0E0 !important; border-radius: 8px !important; }
+  
+  /* 手打ち用入力欄のスタイル */
+  .cart-qty-input { 
+    width: 65px !important; 
+    text-align: center; 
+    font-size: 18px !important; 
+    font-weight: 900 !important; 
+    padding: 6px !important; 
+    margin: 0 5px; 
+    border: 3px solid #E0E0E0 !important; 
+    border-radius: 8px !important; 
+  }
   .cart-qty-input:focus { border-color: var(--mustard-yellow) !important; }
 
+  /* 同期ステータス */
   #syncStatus { text-align: center; padding: 10px; font-weight: 800; font-size: 15px; color: var(--lettuce-dark); background: #DCEDC8; border: 3px solid var(--lettuce-green); border-radius: 12px; margin-bottom: 20px; display: none; box-shadow: 0 4px 0 var(--lettuce-green);}
 </style>
 </head>
 <body>
 
 <div class="header">
-  <div class="store-badge">📍 <span id="storeNameDisplay">店舗名読込中...</span> 専門システム</div>
-  <h1>🍔 FiveM 飲食店 管理システム 🍟</h1>
+  <h1>🍔 FiveM BURGER SHOP 管理システム 🍟</h1>
 </div>
 
 <div class="container">
   <div id="syncStatus">✅ クラウドデータベースと同期中...</div>
 
-  <!-- タブボタン -->
+  <!-- タブボタン (新メニュー開発タブを押したときはフォームをリセットする) -->
   <div class="tab-container">
     <button id="btn-calc" class="tab-btn active" onclick="switchTab('tab-calc', this)">🛒 オーダー作成・計算</button>
     <button id="btn-recipes" class="tab-btn" onclick="switchTab('tab-recipes', this)">📖 レシピ帳を見る</button>
@@ -234,7 +270,7 @@
       <div id="recipeMaterialsContainer"></div>
       <button type="button" class="btn-green" onclick="addRecipeMaterialRow()">+ 食材の入力欄を追加</button>
     </div>
-    <button id="saveRecipeBtn" class="btn-blue" onclick="saveRecipe()">✨ メニューを保存 (店舗メンバーに共有)</button>
+    <button id="saveRecipeBtn" class="btn-blue" onclick="saveRecipe()">✨ メニューを保存 (全員に共有)</button>
   </div>
 
   <!-- 【画面4】 素材・タグの設定 -->
@@ -244,7 +280,7 @@
         <h2>🍅 新しい食材を仕入れリストに登録</h2>
         <div class="form-group"><label>食材名</label><input type="text" id="matName" placeholder="例: パティ、バンズ、トマト"></div>
         <div class="form-group"><label>食材1個の重さ (kg)</label><input type="number" step="0.01" id="matWeight" placeholder="例: 0.1"></div>
-        <button class="btn-blue" onclick="saveMaterial()">食材を登録 (店舗メンバーに共有)</button>
+        <button class="btn-blue" onclick="saveMaterial()">食材を登録 (全員に共有)</button>
       </div>
       <div class="flex-col"><h2>📋 登録済みの食材一覧</h2><ul class="mat-list" id="materialsList"></ul></div>
     </div>
@@ -252,7 +288,7 @@
       <div class="flex-col">
         <h2>🏷️ 新しいカテゴリー(タグ)を作る</h2>
         <div class="form-group"><label>カテゴリー名</label><input type="text" id="tagName" placeholder="例: ドリンク、セット、期間限定"></div>
-        <button class="btn-blue" style="background:var(--mustard-dark); box-shadow: 0 6px 0 #E65100;" onclick="saveTag()">タグを登録 (店舗メンバーに共有)</button>
+        <button class="btn-blue" style="background:var(--mustard-dark); box-shadow: 0 6px 0 #E65100;" onclick="saveTag()">タグを登録 (全員に共有)</button>
       </div>
       <div class="flex-col"><h2>📋 登録済みのカテゴリー</h2><ul class="mat-list" id="tagsList"></ul></div>
     </div>
@@ -261,23 +297,6 @@
 </div>
 
 <script>
-  // ==========================================
-  // 【新機能】URLから店舗IDを取得してデータを分ける
-  // ==========================================
-  const urlParams = new URLSearchParams(window.location.search);
-  let storeId = urlParams.get('store');
-
-  // URLに ?store= が無い場合は入力を求める
-  if (!storeId) {
-    storeId = prompt("【店舗設定】\nお店専用のID（半角英数字）を入力してください。\n例: burger, cafe, ramen", "burger");
-    if (!storeId) storeId = "default";
-    // URLに付与してリロードせずに書き換える
-    history.replaceState(null, '', '?store=' + storeId);
-  }
-
-  // 画面にお店の名前を表示
-  document.getElementById('storeNameDisplay').innerText = storeId.toUpperCase();
-
   // ==========================================
   // Firebaseの設定
   // ==========================================
@@ -291,11 +310,9 @@
     measurementId: "G-8TSHYB31Z9"
   };
   
+  // Firebaseの初期化
   firebase.initializeApp(firebaseConfig);
   const db = firebase.database();
-
-  // ★重要★ 店舗ごとにデータベースの保存場所を変える
-  const dbRef = db.ref('stores/' + storeId);
 
   // ==============================
   // データの変数
@@ -304,12 +321,14 @@
   let recipes = [];
   let tags = ['メイン', 'ドリンク', 'サイド', 'セット']; 
   let cart = [];
+  
+  // 編集モード用の変数
   let editRecipeIndex = null;
 
   // ==============================
   // Firebaseとのリアルタイム同期
   // ==============================
-  dbRef.on('value', (snapshot) => {
+  db.ref('fivem_data').on('value', (snapshot) => {
     document.getElementById('syncStatus').style.display = 'block';
     
     const data = snapshot.val() || {};
@@ -327,7 +346,7 @@
   });
 
   function syncData() {
-    dbRef.set({
+    db.ref('fivem_data').set({
       materials: materials,
       recipes: recipes,
       tags: tags
@@ -378,6 +397,7 @@
     }
   }
 
+  // 新規作成＆編集時のフォームリセット処理
   function resetRecipeForm() {
     editRecipeIndex = null;
     document.getElementById('itemName').value = ''; 
@@ -387,8 +407,9 @@
     document.querySelectorAll('.recipe-tag-checkbox').forEach(cb => cb.checked = false);
     addRecipeMaterialRow();
     
+    // UIの表記を「新規作成」に戻す
     document.getElementById('createTabTitle').innerText = "🍔 新しいメニューを開発して登録";
-    document.getElementById('saveRecipeBtn').innerText = "✨ メニューを保存 (店舗メンバーに共有)";
+    document.getElementById('saveRecipeBtn').innerText = "✨ メニューを保存 (全員に共有)";
     document.getElementById('saveRecipeBtn').style.background = "var(--ketchup-red)";
     document.getElementById('saveRecipeBtn').style.boxShadow = "0 6px 0 var(--ketchup-dark)";
   }
@@ -413,28 +434,34 @@
     const newRecipe = { name, image, weight: parseFloat(weight) || 0, materials: usedMaterials, tags: selectedTags };
 
     if (editRecipeIndex !== null) {
+      // 編集モードなら上書き
       recipes[editRecipeIndex] = newRecipe;
     } else {
+      // 新規作成モードなら追加
       recipes.push(newRecipe);
     }
     
     syncData(); 
-    resetRecipeForm();
-    document.getElementById('btn-recipes').click();
+    resetRecipeForm(); // 保存後にフォームをリセット
+    document.getElementById('btn-recipes').click(); // レシピ帳に移動
   }
 
+  // 編集モードを起動する関数
   function editRecipe(index) {
     const recipe = recipes[index];
     editRecipeIndex = index;
 
+    // フォームに値をセット
     document.getElementById('itemName').value = recipe.name;
     document.getElementById('itemImage').value = recipe.image || '';
     document.getElementById('itemWeight').value = recipe.weight;
 
+    // タグのチェックボックスを復元
     document.querySelectorAll('.recipe-tag-checkbox').forEach(cb => {
       cb.checked = recipe.tags && recipe.tags.includes(cb.value);
     });
 
+    // 食材の行を復元
     const container = document.getElementById('recipeMaterialsContainer');
     container.innerHTML = '';
     if (recipe.materials && recipe.materials.length > 0) {
@@ -443,11 +470,13 @@
       addRecipeMaterialRow();
     }
 
+    // UIの表記を「編集」に変更
     document.getElementById('createTabTitle').innerText = "🍔 既存メニューを編集する";
     document.getElementById('saveRecipeBtn').innerText = "🔄 この内容で上書き更新する";
     document.getElementById('saveRecipeBtn').style.background = "var(--mustard-dark)";
     document.getElementById('saveRecipeBtn').style.boxShadow = "0 6px 0 #E65100";
 
+    // 編集画面へ移動
     switchTab('tab-create', document.getElementById('btn-create'));
   }
 
@@ -486,6 +515,7 @@
     });
   }
 
+  // 引数に食材名が渡された場合は、その食材を選択状態にする
   function getMaterialOptionsHtml(selectedMatName = '') {
     let html = '<option value="">-- 食材を選ぶ --</option>';
     materials.forEach(mat => {
@@ -543,6 +573,7 @@
             <div class="info-text">🍳 <strong>必要な食材:</strong> (食材の総重量: ${totalMatWeight.toFixed(2)}kg)</div>
             <ul class="recipe-mats">${matHtml || '<li>なし</li>'}</ul>
             
+            <!-- 編集ボタンと削除ボタン -->
             <div style="display:flex; gap:10px; margin-top: 15px;">
               <button class="btn-blue" style="flex:1; background: var(--mustard-dark); box-shadow: 0 4px 0 #E65100; font-size:14px; padding:10px;" onclick="editRecipe(${realIndex})">✏️ 編集する</button>
               <button class="btn-red" style="flex:1; font-size:14px; padding:10px;" onclick="deleteRecipe(${realIndex})">🗑️ 削除する</button>
@@ -582,12 +613,14 @@
     renderCart();
   }
 
+  // プラスマイナスボタン用
   function changeCartQty(index, amount) {
     cart[index].qty += amount;
     if (cart[index].qty <= 0) cart.splice(index, 1);
     renderCart();
   }
 
+  // 手打ち入力用
   function updateCartQty(index, value) {
     let newQty = parseInt(value, 10);
     if (isNaN(newQty) || newQty <= 0) {
@@ -598,6 +631,7 @@
     renderCart();
   }
 
+  // 1発でゴミ箱に入れる用
   function removeCartItem(index) {
     cart.splice(index, 1);
     renderCart();
