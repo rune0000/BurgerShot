@@ -3,325 +3,640 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>FiveM 飲食店レシピ・素材管理</title>
-<style>
-  body { font-family: sans-serif; margin: 0; padding: 20px; background: #f4f4f9; color: #333; }
-  .header { text-align: center; margin-bottom: 20px; }
-  
-  /* レイアウト：画面が広いときは横並び、狭いときは縦並び */
-  .grid { display: flex; flex-wrap: wrap; gap: 20px; max-width: 1000px; margin: auto; }
-  .col-materials, .col-recipes { flex: 1 1 400px; }
-  
-  .box { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 20px; }
-  h2 { margin-top: 0; border-bottom: 2px solid #eee; padding-bottom: 10px; font-size: 18px; color: #222; }
-  
-  .form-group { margin-bottom: 15px; }
-  label { display: block; font-weight: bold; margin-bottom: 5px; font-size: 14px; }
-  input[type="text"], input[type="number"], select { width: 100%; padding: 10px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px; }
-  
-  button { padding: 10px 15px; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; transition: 0.2s; }
-  .btn-blue { background: #007bff; width: 100%; }
-  .btn-blue:hover { background: #0056b3; }
-  .btn-green { background: #28a745; margin-bottom: 10px; font-size: 12px; }
-  .btn-green:hover { background: #218838; }
-  .btn-red { background: #dc3545; padding: 5px 10px; font-size: 12px; }
-  .btn-red:hover { background: #c82333; }
+<title>FiveM 飲食店レシピ・素材管理 (バーガーショップUI版)</title>
+<!-- Firebaseの読み込み -->
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
 
-  /* 素材リスト用 */
-  .mat-list { list-style: none; padding: 0; margin: 0; max-height: 200px; overflow-y: auto; }
-  .mat-list li { display: flex; justify-content: space-between; align-items: center; padding: 8px; border-bottom: 1px solid #eee; font-size: 14px; }
-  .mat-list li:nth-child(even) { background: #fafafa; }
+<!-- 丸くてポップなフォントを読み込み -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;700;800&display=swap" rel="stylesheet">
+
+<style>
+  :root {
+    --ketchup-red: #E63946;
+    --ketchup-dark: #B71C1C;
+    --mustard-yellow: #FFCA28;
+    --mustard-dark: #FF8F00;
+    --bun-color: #F3E5AB;
+    --bun-dark: #D7CCC8;
+    --lettuce-green: #7CB342;
+    --lettuce-dark: #558B2F;
+    --meat-brown: #4E342E;
+    --bg-cream: #FFFDF7;
+  }
+
+  /* 全体のベース設定（フォントと背景） */
+  body { 
+    font-family: 'M PLUS Rounded 1c', sans-serif; 
+    margin: 0; 
+    padding: 0 0 40px 0; 
+    background-color: var(--bg-cream); 
+    background-image: radial-gradient(var(--bun-color) 2px, transparent 2px);
+    background-size: 30px 30px;
+    color: var(--meat-brown); 
+  }
+
+  /* お店の看板風ヘッダー */
+  .header { 
+    text-align: center; 
+    margin-bottom: 30px; 
+    background-color: var(--ketchup-red);
+    color: white;
+    padding: 25px 20px;
+    border-bottom: 8px solid var(--ketchup-dark);
+    box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+  }
+  .header h1 {
+    margin: 0;
+    font-size: 28px;
+    font-weight: 800;
+    letter-spacing: 2px;
+    text-shadow: 2px 2px 0px var(--ketchup-dark);
+  }
+
+  .container { max-width: 1050px; margin: auto; padding: 0 15px;}
   
-  /* メニュー作成の素材行 */
+  /* タブのスタイル（バンズ風） */
+  .tab-container { display: flex; border-bottom: 6px solid var(--mustard-yellow); gap: 5px; flex-wrap: wrap; margin-bottom: 0;}
+  .tab-btn { 
+    background: #FFF; 
+    border: 3px solid #E0E0E0; 
+    border-bottom: none;
+    padding: 14px 18px; 
+    font-size: 16px; 
+    cursor: pointer; 
+    border-radius: 15px 15px 0 0; 
+    margin-bottom: 0px; 
+    color: #888; 
+    outline: none; 
+    transition: 0.2s; 
+    font-weight: 800;
+    font-family: 'M PLUS Rounded 1c', sans-serif; 
+  }
+  .tab-btn:hover { background: var(--bun-color); color: var(--meat-brown);}
+  .tab-btn.active { 
+    background: var(--mustard-yellow); 
+    color: var(--meat-brown); 
+    border: 3px solid var(--mustard-yellow); 
+    border-bottom: 6px solid var(--mustard-yellow); 
+    margin-bottom: -6px;
+    z-index: 1; 
+  }
+  
+  /* タブの中身のスタイル */
+  .tab-content { 
+    display: none; 
+    background: #fff; 
+    padding: 30px; 
+    border: 6px solid var(--mustard-yellow); 
+    border-top: none; 
+    border-radius: 0 0 20px 20px; 
+    box-shadow: 0 8px 15px rgba(255, 202, 40, 0.2); 
+  }
+  .tab-content.active { display: block; }
+
+  h2 { margin-top: 0; border-bottom: 3px dashed var(--bun-dark); padding-bottom: 10px; font-size: 22px; color: var(--ketchup-red); font-weight: 800;}
+  
+  .form-group { margin-bottom: 18px; }
+  label { display: block; font-weight: 800; margin-bottom: 8px; font-size: 15px; color: var(--meat-brown);}
+  
+  /* 入力欄 */
+  input[type="text"], input[type="number"], select { 
+    width: 100%; padding: 12px; box-sizing: border-box; 
+    border: 3px solid #E0E0E0; border-radius: 10px; 
+    font-family: 'M PLUS Rounded 1c', sans-serif; 
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--meat-brown);
+    transition: 0.2s;
+  }
+  input[type="text"]:focus, input[type="number"]:focus, select:focus {
+    border-color: var(--mustard-yellow);
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(255, 202, 40, 0.3);
+  }
+  
+  /* 立体的なポップボタン */
+  button { 
+    padding: 12px 20px; color: white; border: none; border-radius: 12px; cursor: pointer; 
+    font-weight: 800; font-size: 15px; font-family: 'M PLUS Rounded 1c', sans-serif; 
+    transition: all 0.1s; transform: translateY(0);
+  }
+  button:active { transform: translateY(4px); box-shadow: 0 0px 0 transparent !important;}
+  
+  /* 各ボタンのカラーリング（元クラス名維持） */
+  .btn-blue { background: var(--ketchup-red); width: 100%; font-size: 18px; padding: 15px; box-shadow: 0 6px 0 var(--ketchup-dark); letter-spacing: 1px;}
+  .btn-blue:hover { background: #d32f2f; }
+  
+  .btn-green { background: var(--lettuce-green); margin-bottom: 10px; font-size: 14px; box-shadow: 0 4px 0 var(--lettuce-dark);}
+  .btn-green:hover { background: #689f38; }
+  
+  .btn-red { background: #757575; padding: 8px 15px; font-size: 13px; box-shadow: 0 4px 0 #424242;}
+  .btn-red:hover { background: #616161; }
+
+  /* レイアウト用 */
+  .flex-row { display: flex; gap: 25px; flex-wrap: wrap; }
+  .flex-col { flex: 1 1 320px; }
+
+  /* リスト用 */
+  .mat-list { list-style: none; padding: 0; margin: 0; max-height: 250px; overflow-y: auto; border: 3px solid #EEEEEE; border-radius: 12px; }
+  .mat-list li { display: flex; justify-content: space-between; align-items: center; padding: 12px 15px; border-bottom: 2px solid #EEEEEE; font-size: 15px; font-weight: 700;}
+  .mat-list li:nth-child(even) { background: #FAFAFA; }
+  
   .material-row { display: flex; gap: 10px; margin-bottom: 10px; align-items: center; }
   .material-row select { flex: 2; }
   .material-row input { flex: 1; }
 
-  /* 完成品メニューのカード */
-  .item-card { border: 1px solid #ddd; padding: 15px; border-radius: 8px; margin-bottom: 15px; display: flex; gap: 15px; background: #fff; }
-  .item-image { width: 100px; height: 100px; object-fit: cover; border-radius: 8px; border: 1px solid #ccc; background: #eee; }
-  .item-details { flex: 1; }
-  .item-details h3 { margin: 0 0 10px 0; font-size: 18px; color: #222; border-bottom: none;}
-  .info-text { font-size: 14px; color: #555; margin-bottom: 5px; }
-  .recipe-mats { margin: 5px 0 10px 0; padding-left: 20px; font-size: 13px; color: #444; }
-  .sub-info { font-size: 12px; color: #888; }
+  /* フィルターバー */
+  .filter-bar { background: var(--bun-color); padding: 15px 20px; border-radius: 12px; margin-bottom: 20px; border: 3px solid var(--mustard-yellow); display: flex; align-items: center; gap: 10px; font-weight: 800;}
+  .filter-bar select { border-color: white; background: white;}
   
-  .full-width { max-width: 1000px; margin: auto; }
+  /* タグバッジ */
+  .tag-badge { display: inline-block; background: var(--mustard-dark); color: #fff; padding: 6px 12px; border-radius: 20px; font-size: 13px; font-weight: 800; margin-right: 5px; margin-bottom: 8px; box-shadow: 0 2px 0 #FF6F00;}
+  .tag-checkbox-label { display: inline-block; background: #fff; border: 3px solid #E0E0E0; padding: 8px 18px; border-radius: 25px; margin-right: 10px; margin-bottom: 10px; cursor: pointer; font-size: 15px; font-weight: 700; user-select: none; transition: 0.2s;}
+  .tag-checkbox-label:hover { border-color: var(--mustard-yellow); background: var(--bun-color);}
+  .tag-checkbox-label input { margin-right: 8px; cursor: pointer; transform: scale(1.2);}
+
+  /* メニューのカード */
+  .item-card { border: 3px solid #EEEEEE; padding: 20px; border-radius: 15px; margin-bottom: 20px; display: flex; gap: 20px; background: #FFF; transition: 0.2s; box-shadow: 0 4px 6px rgba(0,0,0,0.05);}
+  .item-card:hover { border-color: var(--mustard-yellow); transform: translateY(-3px); box-shadow: 0 8px 15px rgba(255, 202, 40, 0.2);}
+  .item-image { width: 120px; height: 120px; object-fit: cover; border-radius: 12px; border: 3px solid #EEEEEE; background: #fafafa; }
+  .item-details { flex: 1; }
+  .item-details h3 { margin: 0 0 10px 0; font-size: 24px; color: var(--ketchup-red); font-weight: 800; border-bottom: none;}
+  .info-text { font-size: 15px; color: var(--meat-brown); margin-bottom: 6px; font-weight: 700;}
+  .recipe-mats { margin: 8px 0 15px 0; padding-left: 20px; font-size: 15px; color: var(--meat-brown); font-weight: 700;}
+  .sub-info { font-size: 13px; color: #888; font-weight: 400;}
+
+  /* 作成画面(カート)用 - ★ここを5列にしました★ */
+  .calc-menu-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; }
+  .calc-menu-btn { border: 3px solid #EEEEEE; padding: 10px; border-radius: 12px; text-align: center; cursor: pointer; background: #fff; transition: 0.2s; user-select: none; box-shadow: 0 4px 0 #EEEEEE; display: flex; flex-direction: column; align-items: center; justify-content: flex-start;}
+  .calc-menu-btn:hover { border-color: var(--ketchup-red); background: #FFF5F5; transform: translateY(2px); box-shadow: 0 2px 0 var(--ketchup-red); }
+  .calc-menu-btn:active { transform: translateY(4px); box-shadow: 0 0 0 transparent; }
+  .calc-menu-btn img { width: 100%; max-width: 80px; height: 80px; object-fit: cover; border-radius: 10px; margin-bottom: 8px; border: 2px solid #f0f0f0;}
+  .calc-menu-title { font-size: 13px; font-weight: 800; line-height: 1.3; margin-bottom: 5px; color: var(--meat-brown); word-break: break-word;}
+  .calc-menu-weight { font-size: 11px; color: #888; font-weight: 700; margin-top: auto;}
+
+  /* 画面が狭いスマホ等の場合は列数を減らす設定（おまけ） */
+  @media (max-width: 850px) {
+    .calc-menu-grid { grid-template-columns: repeat(4, 1fr); }
+  }
+  @media (max-width: 600px) {
+    .calc-menu-grid { grid-template-columns: repeat(3, 1fr); }
+  }
+
+  /* カートリスト */
+  .cart-list { list-style: none; padding: 0; margin: 0 0 15px 0; max-height: 400px; overflow-y: auto; }
+  .cart-list li { display: flex; flex-direction: column; gap: 8px; padding: 15px; border-bottom: none; background: #fff; border: 3px solid #EEE; border-radius: 12px; margin-bottom: 10px; box-shadow: 0 4px 0 #EEE; }
+  .cart-list-title { font-weight: 800; font-size: 16px; color: var(--meat-brown);}
+  .cart-controls { display: flex; justify-content: space-between; align-items: center; width: 100%; margin-top: 5px;}
+  .cart-qty-btn { padding: 5px 15px; font-size: 18px; border-radius: 8px; font-weight: 900;}
+  
+  /* 手打ち用入力欄のスタイル */
+  .cart-qty-input { 
+    width: 65px !important; 
+    text-align: center; 
+    font-size: 18px !important; 
+    font-weight: 900 !important; 
+    padding: 6px !important; 
+    margin: 0 5px; 
+    border: 3px solid #E0E0E0 !important; 
+    border-radius: 8px !important; 
+  }
+  .cart-qty-input:focus { border-color: var(--mustard-yellow) !important; }
+
+  /* 同期ステータス */
+  #syncStatus { text-align: center; padding: 10px; font-weight: 800; font-size: 15px; color: var(--lettuce-dark); background: #DCEDC8; border: 3px solid var(--lettuce-green); border-radius: 12px; margin-bottom: 20px; display: none; box-shadow: 0 4px 0 var(--lettuce-green);}
 </style>
 </head>
 <body>
 
 <div class="header">
-  <h1>🍔 FiveM 飲食店 レシピ＆素材管理システム</h1>
+  <h1>🍔 FiveM BURGER SHOP 管理システム 🍟</h1>
 </div>
 
-<div class="grid">
-  <!-- 🍅 左側：素材のマスター登録 -->
-  <div class="col-materials">
-    <div class="box">
-      <h2>🍅 1. 素材を登録・管理</h2>
-      <div class="form-group">
-        <label>素材名</label>
-        <input type="text" id="matName" placeholder="例: パン、レタス、生肉">
-      </div>
-      <div class="form-group">
-        <label>素材1個の重さ (Weight)</label>
-        <input type="number" step="0.01" id="matWeight" placeholder="例: 0.1">
-      </div>
-      <button class="btn-blue" onclick="saveMaterial()">素材をリストに追加</button>
-    </div>
+<div class="container">
+  <div id="syncStatus">✅ クラウドデータベースと同期中...</div>
 
-    <div class="box">
-      <h2>📋 登録済みの素材一覧</h2>
-      <ul class="mat-list" id="materialsList">
-        <!-- 素材リストがここに入ります -->
-      </ul>
-    </div>
+  <!-- タブボタン -->
+  <div class="tab-container">
+    <button id="btn-calc" class="tab-btn active" onclick="switchTab('tab-calc', this)">🛒 オーダー作成・計算</button>
+    <button id="btn-recipes" class="tab-btn" onclick="switchTab('tab-recipes', this)">📖 レシピ帳を見る</button>
+    <button id="btn-create" class="tab-btn" onclick="switchTab('tab-create', this)">🍔 新メニュー開発</button>
+    <button id="btn-materials" class="tab-btn" onclick="switchTab('tab-materials', this)">⚙️ 食材・タグ仕入れ</button>
   </div>
 
-  <!-- 🍔 右側：完成品の登録 -->
-  <div class="col-recipes">
-    <div class="box">
-      <h2>🍔 2. メニュー(完成品)を登録</h2>
-      <div class="form-group">
-        <label>アイテム名 (完成品)</label>
-        <input type="text" id="itemName" placeholder="例: スペシャルハンバーガー">
-      </div>
-      <div class="form-group">
-        <label>画像URL</label>
-        <input type="text" id="itemImage" placeholder="例: https://.../image.png">
-      </div>
-      <div class="form-group">
-        <label>完成品アイテムの重さ (Weight)</label>
-        <input type="number" step="0.1" id="itemWeight" placeholder="例: 1.5">
-      </div>
-      
-      <div class="form-group">
-        <label>必要な素材 (プルダウンで選択)</label>
-        <div id="recipeMaterialsContainer">
-          <!-- プルダウンが入る場所 -->
+  <!-- 【画面1】 🛒 まとめて作成(計算) -->
+  <div id="tab-calc" class="tab-content active">
+    <div class="flex-row">
+      <!-- 左側(メニュー一覧)の幅を広めにとる -->
+      <div class="flex-col" style="flex: 2.5;">
+        <h2>🍔 オーダーするメニューをタップ！</h2>
+        <div class="filter-bar">
+          <span>🏷️ カテゴリー：</span>
+          <select id="calcFilterTag" onchange="renderCalcMenu()"><option value="">すべてのメニュー</option></select>
         </div>
-        <button type="button" class="btn-green" onclick="addRecipeMaterialRow()">+ 素材の入力欄を追加</button>
+        <div id="calcMenuList" class="calc-menu-grid"></div>
       </div>
-      
-      <button class="btn-blue" onclick="saveRecipe()">メニューを保存する</button>
+      <div class="flex-col" style="flex: 1.5; background: var(--bg-cream); padding: 25px; border-radius: 15px; border: 4px solid #E0E0E0;">
+        <h2>📋 現在のオーダーシート</h2>
+        <ul id="cartList" class="cart-list"></ul>
+        <div style="background: white; padding: 15px; border-radius: 12px; border: 3px solid var(--ketchup-red); margin-bottom: 15px; text-align: center;">
+          <div style="font-size: 15px; color: var(--ketchup-dark); font-weight: 800;">📦 料理の合計重量</div>
+          <div style="font-size: 32px; font-weight: 800; color: var(--ketchup-red);" id="cartTotalWeight">0.00g</div>
+        </div>
+        <div style="border-top: 3px dashed #CCC; padding-top: 15px;">
+          <strong style="font-size: 16px; color: var(--meat-brown);">🍳 倉庫から出す食材リスト:</strong>
+          <ul id="cartTotalMaterials" class="recipe-mats" style="margin-top: 10px;"></ul>
+        </div>
+        <button class="btn-red" style="width: 100%; margin-top: 15px; font-size:15px; padding: 12px; background: #616161;" onclick="clearCart()">🗑️ オーダーをすべて取り消す</button>
+      </div>
     </div>
   </div>
-</div>
 
-<!-- 📋 下部：登録したメニュー一覧 -->
-<div class="full-width">
-  <div class="box">
-    <h2>📖 登録済みメニュー (レシピ帳)</h2>
-    <div id="recipesList">
-      <!-- レシピカードがここに入ります -->
+  <!-- 【画面2】 登録済みメニュー一覧 -->
+  <div id="tab-recipes" class="tab-content">
+    <h2>📖 お店のレシピ帳</h2>
+    <div class="filter-bar">
+      <span>🏷️ カテゴリーで絞り込む：</span>
+      <select id="filterTag" onchange="renderRecipes()"><option value="">すべてのメニュー</option></select>
+    </div>
+    <div id="recipesList"></div>
+  </div>
+
+  <!-- 【画面3】 メニュー(完成品)の登録 -->
+  <div id="tab-create" class="tab-content">
+    <h2>🍔 新しいメニューを開発して登録</h2>
+    <div class="form-group"><label>メニュー名</label><input type="text" id="itemName" placeholder="例: ダブルチーズバーガー"></div>
+    <div class="form-group"><label>カテゴリー・タグ (複数選択可)</label><div id="recipeTagsContainer" style="margin-top: 5px;"></div></div>
+    <div class="form-group"><label>画像URL</label><input type="text" id="itemImage" placeholder="Discordの画像リンクなどを貼り付け"></div>
+    <div class="form-group"><label>完成品の重さ (g)</label><input type="number" step="0.1" id="itemWeight" placeholder="例: 1.5"></div>
+    <div class="form-group"><label>必要な食材 (プルダウンで選択)</label>
+      <div id="recipeMaterialsContainer"></div>
+      <button type="button" class="btn-green" onclick="addRecipeMaterialRow()">+ 食材の入力欄を追加</button>
+    </div>
+    <button class="btn-blue" onclick="saveRecipe()">✨ メニューを保存 (全員に共有)</button>
+  </div>
+
+  <!-- 【画面4】 素材・タグの設定 -->
+  <div id="tab-materials" class="tab-content">
+    <div class="flex-row" style="margin-bottom: 30px; border-bottom: 3px dashed #CCC; padding-bottom: 30px;">
+      <div class="flex-col">
+        <h2>🍅 新しい食材を仕入れリストに登録</h2>
+        <div class="form-group"><label>食材名</label><input type="text" id="matName" placeholder="例: パティ、バンズ、トマト"></div>
+        <div class="form-group"><label>食材1個の重さ (g)</label><input type="number" step="0.01" id="matWeight" placeholder="例: 0.1"></div>
+        <button class="btn-blue" onclick="saveMaterial()">食材を登録 (全員に共有)</button>
+      </div>
+      <div class="flex-col"><h2>📋 登録済みの食材一覧</h2><ul class="mat-list" id="materialsList"></ul></div>
+    </div>
+    <div class="flex-row">
+      <div class="flex-col">
+        <h2>🏷️ 新しいカテゴリー(タグ)を作る</h2>
+        <div class="form-group"><label>カテゴリー名</label><input type="text" id="tagName" placeholder="例: ドリンク、セット、期間限定"></div>
+        <button class="btn-blue" style="background:var(--mustard-dark); box-shadow: 0 6px 0 #E65100;" onclick="saveTag()">タグを登録 (全員に共有)</button>
+      </div>
+      <div class="flex-col"><h2>📋 登録済みのカテゴリー</h2><ul class="mat-list" id="tagsList"></ul></div>
     </div>
   </div>
+
 </div>
 
 <script>
-  // データの読み込み
-  let materials = JSON.parse(localStorage.getItem('fivem_materials')) || [];
-  let recipes = JSON.parse(localStorage.getItem('fivem_recipes')) || [];
+  // ==========================================
+  // Firebaseの設定
+  // ==========================================
+  const firebaseConfig = {
+    apiKey: "AIzaSyDHsSUZN3Vo2CQCSOZMuCrpDsPm3MC79Sk",
+    authDomain: "fivemcafe.firebaseapp.com",
+    projectId: "fivemcafe",
+    storageBucket: "fivemcafe.firebasestorage.app",
+    messagingSenderId: "369339671614",
+    appId: "1:369339671614:web:76e26fc77d3a6175479d6f",
+    measurementId: "G-8TSHYB31Z9"
+  };
+  
+  // Firebaseの初期化
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.database();
 
   // ==============================
-  // 1. 素材に関する機能
+  // データの変数
   // ==============================
+  let materials = [];
+  let recipes = [];
+  let tags = ['メイン', 'ドリンク', 'サイド', 'セット']; 
+  let cart = [];
+
+  // ==============================
+  // Firebaseとのリアルタイム同期
+  // ==============================
+  db.ref('fivem_data').on('value', (snapshot) => {
+    document.getElementById('syncStatus').style.display = 'block';
+    
+    const data = snapshot.val() || {};
+    materials = data.materials || [];
+    recipes = data.recipes || [];
+    tags = data.tags || ['メイン', 'ドリンク', 'サイド', 'セット'];
+
+    renderTags();
+    updateTagDropdowns();
+    renderMaterials();
+    updateMaterialDropdowns();
+    renderRecipes();
+    renderCalcMenu();
+    renderCart();
+  });
+
+  function syncData() {
+    db.ref('fivem_data').set({
+      materials: materials,
+      recipes: recipes,
+      tags: tags
+    });
+  }
+
+  // ==============================
+  // タブ切り替え
+  // ==============================
+  function switchTab(tabId, btnElement) {
+    document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+    document.getElementById(tabId).classList.add('active');
+    btnElement.classList.add('active');
+  }
+
+  // ==============================
+  // 各種保存・削除処理
+  // ==============================
+  function saveTag() {
+    const name = document.getElementById('tagName').value.trim();
+    if (!name || tags.includes(name)) return;
+    tags.push(name);
+    syncData(); 
+    document.getElementById('tagName').value = '';
+  }
+
+  function deleteTag(index) {
+    if (confirm("カテゴリーを削除しますか？")) {
+      tags.splice(index, 1);
+      syncData();
+    }
+  }
+
   function saveMaterial() {
     const name = document.getElementById('matName').value.trim();
     const weight = document.getElementById('matWeight').value;
-
-    if (!name) {
-      alert("素材名を入力してください！");
-      return;
-    }
-    // 同じ名前の素材が既にないかチェック
-    if (materials.some(m => m.name === name)) {
-      alert("その素材はすでに登録されています！");
-      return;
-    }
-
+    if (!name || materials.some(m => m.name === name)) return;
     materials.push({ name: name, weight: parseFloat(weight) || 0 });
-    localStorage.setItem('fivem_materials', JSON.stringify(materials));
-    
-    document.getElementById('matName').value = '';
-    document.getElementById('matWeight').value = '';
-    
-    renderMaterials();
-    updateDropdowns(); // メニュー登録側のプルダウンも更新
-  }
-
-  function renderMaterials() {
-    const list = document.getElementById('materialsList');
-    list.innerHTML = '';
-    
-    if (materials.length === 0) {
-      list.innerHTML = '<li style="color:#888;">素材が登録されていません。</li>';
-      return;
-    }
-
-    materials.forEach((mat, index) => {
-      list.innerHTML += `
-        <li>
-          <span><strong>${mat.name}</strong> (重さ: ${mat.weight})</span>
-          <button class="btn-red" onclick="deleteMaterial(${index})">削除</button>
-        </li>
-      `;
-    });
+    syncData();
+    document.getElementById('matName').value = ''; document.getElementById('matWeight').value = '';
   }
 
   function deleteMaterial(index) {
-    if (confirm("素材を削除しますか？\n(既に登録済みのメニューからは消えません)")) {
+    if (confirm("食材を削除しますか？")) {
       materials.splice(index, 1);
-      localStorage.setItem('fivem_materials', JSON.stringify(materials));
-      renderMaterials();
-      updateDropdowns();
+      syncData();
     }
-  }
-
-  // ==============================
-  // 2. メニュー（完成品）に関する機能
-  // ==============================
-  
-  // プルダウンの選択肢（HTML）を作る
-  function getOptionsHtml() {
-    if (materials.length === 0) {
-      return '<option value="">先に素材を登録してください</option>';
-    }
-    let html = '<option value="">-- 素材を選ぶ --</option>';
-    materials.forEach(mat => {
-      html += `<option value="${mat.name}">${mat.name} (重さ:${mat.weight})</option>`;
-    });
-    return html;
-  }
-
-  // 素材の入力行を増やす
-  function addRecipeMaterialRow() {
-    const container = document.getElementById('recipeMaterialsContainer');
-    const row = document.createElement('div');
-    row.className = 'material-row';
-    row.innerHTML = `
-      <select class="recipe-mat-select">${getOptionsHtml()}</select>
-      <input type="number" class="recipe-mat-qty" placeholder="個数" min="1">
-      <button type="button" class="btn-red" onclick="this.parentElement.remove()">×</button>
-    `;
-    container.appendChild(row);
-  }
-
-  // 素材が登録・削除されたときにプルダウンの中身を最新にする
-  function updateDropdowns() {
-    const selects = document.querySelectorAll('.recipe-mat-select');
-    const newOptions = getOptionsHtml();
-    selects.forEach(select => {
-      // 選択済みの値を覚えておいて、更新後に戻す
-      const currentValue = select.value;
-      select.innerHTML = newOptions;
-      if (currentValue) select.value = currentValue;
-    });
   }
 
   function saveRecipe() {
     const name = document.getElementById('itemName').value.trim();
     const image = document.getElementById('itemImage').value.trim();
     const weight = document.getElementById('itemWeight').value;
-    
-    if (!name) {
-      alert("完成品の名前を入力してください！");
-      return;
-    }
+    if (!name) return alert("メニュー名を入力してください！");
 
+    const selectedTags = Array.from(document.querySelectorAll('.recipe-tag-checkbox:checked')).map(cb => cb.value);
+    const usedMaterials = [];
     const selects = document.querySelectorAll('.recipe-mat-select');
     const qtys = document.querySelectorAll('.recipe-mat-qty');
-    const usedMaterials = [];
 
     for (let i = 0; i < selects.length; i++) {
-      const matName = selects[i].value;
-      const matQty = parseFloat(qtys[i].value);
-      if (matName && matQty > 0) {
-        usedMaterials.push({ name: matName, qty: matQty });
+      if (selects[i].value && parseFloat(qtys[i].value) > 0) {
+        usedMaterials.push({ name: selects[i].value, qty: parseFloat(qtys[i].value) });
       }
     }
 
-    recipes.push({
-      name: name,
-      image: image,
-      weight: parseFloat(weight) || 0,
-      materials: usedMaterials
-    });
-
-    localStorage.setItem('fivem_recipes', JSON.stringify(recipes));
+    recipes.push({ name, image, weight: parseFloat(weight) || 0, materials: usedMaterials, tags: selectedTags });
+    syncData(); 
     
-    // フォームをリセット
-    document.getElementById('itemName').value = '';
-    document.getElementById('itemImage').value = '';
-    document.getElementById('itemWeight').value = '';
+    document.getElementById('itemName').value = ''; document.getElementById('itemImage').value = ''; document.getElementById('itemWeight').value = '';
     document.getElementById('recipeMaterialsContainer').innerHTML = '';
-    addRecipeMaterialRow();
+    document.querySelectorAll('.recipe-tag-checkbox').forEach(cb => cb.checked = false);
     
-    renderRecipes();
+    addRecipeMaterialRow();
+    document.getElementById('btn-recipes').click();
+  }
+
+  function deleteRecipe(index) {
+    if (confirm("このメニューを削除しますか？")) {
+      recipes.splice(index, 1);
+      syncData();
+      cart = cart.filter(item => item.recipe.name !== recipes[index]?.name);
+    }
+  }
+
+  // ==============================
+  // 描画系の関数
+  // ==============================
+  function renderTags() {
+    const list = document.getElementById('tagsList');
+    const checkboxContainer = document.getElementById('recipeTagsContainer');
+    list.innerHTML = ''; checkboxContainer.innerHTML = '';
+    tags.forEach((tag, index) => {
+      list.innerHTML += `<li><span>🏷️ <strong>${tag}</strong></span><button class="btn-red" onclick="deleteTag(${index})">削除</button></li>`;
+      checkboxContainer.innerHTML += `<label class="tag-checkbox-label"><input type="checkbox" class="recipe-tag-checkbox" value="${tag}"> ${tag}</label>`;
+    });
+  }
+
+  function updateTagDropdowns() {
+    const options = '<option value="">すべてのメニュー</option>' + tags.map(t => `<option value="${t}">${t}</option>`).join('');
+    const f1 = document.getElementById('filterTag'); const val1 = f1.value; f1.innerHTML = options; f1.value = val1;
+    const f2 = document.getElementById('calcFilterTag'); const val2 = f2.value; f2.innerHTML = options; f2.value = val2;
+  }
+
+  function renderMaterials() {
+    const list = document.getElementById('materialsList');
+    list.innerHTML = '';
+    materials.forEach((mat, index) => {
+      list.innerHTML += `<li><span><strong>${mat.name}</strong> <span style="color:#888; font-weight:normal;">(重さ: ${mat.weight}g)</span></span><button class="btn-red" onclick="deleteMaterial(${index})">削除</button></li>`;
+    });
+  }
+
+  function getMaterialOptionsHtml() {
+    let html = '<option value="">-- 食材を選ぶ --</option>';
+    materials.forEach(mat => html += `<option value="${mat.name}">${mat.name} (重さ:${mat.weight}g)</option>`);
+    return html;
+  }
+
+  function addRecipeMaterialRow() {
+    const container = document.getElementById('recipeMaterialsContainer');
+    const row = document.createElement('div');
+    row.className = 'material-row';
+    row.innerHTML = `<select class="recipe-mat-select">${getMaterialOptionsHtml()}</select><input type="number" class="recipe-mat-qty" placeholder="個数" min="1"><button type="button" class="btn-red" style="padding:12px; border-radius:10px;" onclick="this.parentElement.remove()">✖</button>`;
+    container.appendChild(row);
+  }
+
+  function updateMaterialDropdowns() {
+    document.querySelectorAll('.recipe-mat-select').forEach(select => {
+      const val = select.value; select.innerHTML = getMaterialOptionsHtml(); if (val) select.value = val;
+    });
   }
 
   function renderRecipes() {
     const list = document.getElementById('recipesList');
+    const filterValue = document.getElementById('filterTag').value;
     list.innerHTML = '';
+    const targetRecipes = filterValue ? recipes.filter(r => r.tags && r.tags.includes(filterValue)) : recipes;
 
-    if (recipes.length === 0) {
-      list.innerHTML = '<p style="color:#888;">登録されたメニューはありません。</p>';
-      return;
-    }
+    targetRecipes.forEach((recipe) => {
+      const realIndex = recipes.indexOf(recipe);
+      const imgUrl = recipe.image ? recipe.image : 'https://via.placeholder.com/120?text=No+Img';
+      let tagsHtml = recipe.tags ? recipe.tags.map(t => `<span class="tag-badge">${t}</span>`).join('') : '';
+      let matHtml = ''; let totalMatWeight = 0;
 
-    recipes.forEach((recipe, index) => {
-      const imgUrl = recipe.image ? recipe.image : 'https://via.placeholder.com/100?text=No+Image';
-      
-      let matHtml = '';
-      let totalMatWeight = 0;
-
-      recipe.materials.forEach(m => {
-        // 現在の素材マスターから重さを調べる
-        const masterData = materials.find(mat => mat.name === m.name);
-        const matWeight = masterData ? masterData.weight : 0;
-        const subTotalWeight = matWeight * m.qty;
-        totalMatWeight += subTotalWeight;
-
-        matHtml += `
-          <li>
-            ${m.name} × ${m.qty}個 
-            <span class="sub-info">(1個: ${matWeight} / 素材の計: ${subTotalWeight.toFixed(2)})</span>
-          </li>`;
-      });
+      if(recipe.materials) {
+        recipe.materials.forEach(m => {
+          const matWeight = (materials.find(mat => mat.name === m.name) || {weight:0}).weight;
+          const subTotal = matWeight * m.qty;
+          totalMatWeight += subTotal;
+          matHtml += `<li>${m.name} × ${m.qty}個 <span class="sub-info">(食材の計: ${subTotal.toFixed(2)}g)</span></li>`;
+        });
+      }
 
       list.innerHTML += `
         <div class="item-card">
           <img src="${imgUrl}" class="item-image" alt="画像">
           <div class="item-details">
-            <h3>${recipe.name}</h3>
-            <div class="info-text">📦 <strong>完成品の重さ:</strong> ${recipe.weight}</div>
-            <div class="info-text">🍳 <strong>必要な素材:</strong> (素材の総重量: ${totalMatWeight.toFixed(2)})</div>
-            <ul class="recipe-mats">
-              ${matHtml || '<li>なし</li>'}
-            </ul>
-            <button class="btn-red" onclick="deleteRecipe(${index})">このメニューを削除</button>
+            <h3>${recipe.name}</h3><div style="margin-bottom:10px;">${tagsHtml}</div>
+            <div class="info-text">📦 <strong>完成品の重さ:</strong> ${recipe.weight}g</div>
+            <div class="info-text">🍳 <strong>必要な食材:</strong> (食材の総重量: ${totalMatWeight.toFixed(2)}g)</div>
+            <ul class="recipe-mats">${matHtml || '<li>なし</li>'}</ul>
+            <button class="btn-red" onclick="deleteRecipe(${realIndex})">🗑️ このメニューを削除</button>
           </div>
         </div>
       `;
     });
   }
 
-  function deleteRecipe(index) {
-    if (confirm("このメニューを削除しますか？")) {
-      recipes.splice(index, 1);
-      localStorage.setItem('fivem_recipes', JSON.stringify(recipes));
-      renderRecipes();
-    }
+  function renderCalcMenu() {
+    const container = document.getElementById('calcMenuList');
+    const filterValue = document.getElementById('calcFilterTag').value;
+    container.innerHTML = '';
+    const targetRecipes = filterValue ? recipes.filter(r => r.tags && r.tags.includes(filterValue)) : recipes;
+
+    targetRecipes.forEach(recipe => {
+      const realIndex = recipes.indexOf(recipe);
+      const imgUrl = recipe.image ? recipe.image : 'https://via.placeholder.com/90?text=No+Img';
+      container.innerHTML += `
+        <div class="calc-menu-btn" onclick="addToCart(${realIndex})">
+          <img src="${imgUrl}" alt="画像">
+          <div class="calc-menu-title">${recipe.name}</div>
+          <div class="calc-menu-weight">📦 重さ: ${recipe.weight}g</div>
+        </div>
+      `;
+    });
   }
 
-  // 最初に画面を開いたときの処理
-  renderMaterials();
-  renderRecipes();
-  // 最低1つは素材入力欄を出しておく
-  if (document.getElementById('recipeMaterialsContainer').innerHTML.trim() === '') {
-    addRecipeMaterialRow();
+  // ==============================
+  // カート(計算)の機能
+  // ==============================
+  function addToCart(recipeIndex) {
+    const recipe = recipes[recipeIndex];
+    const existing = cart.find(item => item.recipe.name === recipe.name);
+    if (existing) { existing.qty += 1; } else { cart.push({ recipe: recipe, qty: 1 }); }
+    renderCart();
   }
+
+  // プラスマイナスボタン用
+  function changeCartQty(index, amount) {
+    cart[index].qty += amount;
+    if (cart[index].qty <= 0) cart.splice(index, 1);
+    renderCart();
+  }
+
+  // 手打ち入力用
+  function updateCartQty(index, value) {
+    let newQty = parseInt(value, 10);
+    if (isNaN(newQty) || newQty <= 0) {
+      cart.splice(index, 1);
+    } else {
+      cart[index].qty = newQty;
+    }
+    renderCart();
+  }
+
+  // 1発でゴミ箱に入れる用
+  function removeCartItem(index) {
+    cart.splice(index, 1);
+    renderCart();
+  }
+
+  function clearCart() {
+    if(cart.length > 0 && confirm("オーダーをすべてクリアしますか？")) { cart = []; renderCart(); }
+  }
+
+  function renderCart() {
+    const cartList = document.getElementById('cartList');
+    const totalWeightEl = document.getElementById('cartTotalWeight');
+    const totalMaterialsEl = document.getElementById('cartTotalMaterials');
+
+    cartList.innerHTML = '';
+    let totalWeight = 0; let materialTotals = {};
+
+    if (cart.length === 0) {
+      cartList.innerHTML = '<li style="color:#888; text-align:center; font-weight:normal; border:none; box-shadow:none;">左からメニューをタップして追加</li>';
+      totalWeightEl.innerText = '0.00g'; totalMaterialsEl.innerHTML = '<li style="color:#888; font-weight:normal;">なし</li>'; return;
+    }
+
+    cart.forEach((item, index) => {
+      const itemTotalWeight = (item.recipe.weight * item.qty);
+      totalWeight += itemTotalWeight;
+      
+      cartList.innerHTML += `
+        <li>
+          <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+            <div class="cart-list-title">${item.recipe.name}</div>
+            <button class="btn-red" style="padding: 5px 10px; font-size:12px; margin-left: 10px;" onclick="removeCartItem(${index})">✖ 削除</button>
+          </div>
+          <div class="cart-controls">
+            <span style="font-size: 14px; color:#888;">📦 重さ: ${itemTotalWeight.toFixed(2)}g</span>
+            <div style="display: flex; align-items: center;">
+              <button class="btn-red cart-qty-btn" onclick="changeCartQty(${index}, -1)">-</button>
+              <input type="number" class="cart-qty-input" value="${item.qty}" min="1" onchange="updateCartQty(${index}, this.value)">
+              <button class="btn-green cart-qty-btn" onclick="changeCartQty(${index}, 1)">+</button>
+            </div>
+          </div>
+        </li>
+      `;
+
+      if(item.recipe.materials) {
+        item.recipe.materials.forEach(m => {
+          if (!materialTotals[m.name]) {
+            const mWeight = (materials.find(mat => mat.name === m.name) || {weight:0}).weight;
+            materialTotals[m.name] = { qty: 0, weight: mWeight };
+          }
+          materialTotals[m.name].qty += (m.qty * item.qty);
+        });
+      }
+    });
+
+    totalWeightEl.innerText = totalWeight.toFixed(2) + 'g';
+    totalMaterialsEl.innerHTML = '';
+    let totalMatWeight = 0;
+    
+    for (let mName in materialTotals) {
+      const data = materialTotals[mName];
+      const subTotalWeight = data.qty * data.weight;
+      totalMatWeight += subTotalWeight;
+      totalMaterialsEl.innerHTML += `<li style="margin-bottom: 6px; font-size: 16px;">${mName} × <strong style="font-size:18px; color:var(--ketchup-red);">${data.qty}</strong> 個 <span class="sub-info">(重さ計: ${subTotalWeight.toFixed(2)}g)</span></li>`;
+    }
+    
+    totalMaterialsEl.innerHTML += `<li style="margin-top: 15px; border-top: 3px dashed #CCC; padding-top: 15px; list-style: none; margin-left: -20px; color:var(--ketchup-dark); font-weight:900; font-size:18px;">⚖️ 取り出す食材の総重量: ${totalMatWeight.toFixed(2)}g</li>`;
+  }
+
+  // 初回起動時のセットアップ
+  if (document.getElementById('recipeMaterialsContainer').innerHTML.trim() === '') addRecipeMaterialRow();
 </script>
 
 </body>
