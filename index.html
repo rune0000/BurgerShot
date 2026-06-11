@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>FiveM 飲食店レシピ・素材管理 (バーガーショップUI版)</title>
+<title>FiveM 飲食店レシピ・素材管理 (完全版)</title>
 <!-- Firebaseの読み込み -->
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
@@ -30,8 +30,7 @@
   /* 全体のベース設定 */
   body { 
     font-family: 'M PLUS Rounded 1c', sans-serif; 
-    margin: 0; 
-    padding: 0 0 40px 0; 
+    margin: 0; padding: 0 0 40px 0; 
     background-color: var(--bg-cream); 
     background-image: radial-gradient(var(--bun-color) 2px, transparent 2px);
     background-size: 30px 30px;
@@ -40,12 +39,8 @@
 
   /* お店の看板風ヘッダー */
   .header { 
-    text-align: center; 
-    margin-bottom: 30px; 
-    background-color: var(--ketchup-red);
-    color: white;
-    padding: 25px 20px;
-    border-bottom: 8px solid var(--ketchup-dark);
+    text-align: center; margin-bottom: 30px; background-color: var(--ketchup-red);
+    color: white; padding: 25px 20px; border-bottom: 8px solid var(--ketchup-dark);
     box-shadow: 0 4px 10px rgba(0,0,0,0.15);
   }
   .header h1 { margin: 0; font-size: 28px; font-weight: 800; letter-spacing: 2px; text-shadow: 2px 2px 0px var(--ketchup-dark); }
@@ -58,20 +53,17 @@
   .room-change-btn {
     margin-left: 10px; padding: 4px 10px; font-size: 13px; font-weight: 800;
     background: #FFF; color: var(--ketchup-red); border: 2px solid var(--ketchup-red); 
-    border-radius: 10px; cursor: pointer; transform: none; box-shadow: none;
-    font-family: 'M PLUS Rounded 1c', sans-serif; transition: 0.2s;
+    border-radius: 10px; cursor: pointer; transform: none; box-shadow: none; transition: 0.2s;
   }
   .room-change-btn:hover { background: #FFEFEF; transform: translateY(-2px); box-shadow: 0 2px 0 var(--ketchup-dark) !important;}
 
   .container { max-width: 1050px; margin: auto; padding: 0 15px;}
   
-  /* タブのスタイル */
   .tab-container { display: flex; border-bottom: 6px solid var(--mustard-yellow); gap: 5px; flex-wrap: wrap; margin-bottom: 0;}
   .tab-btn { 
     background: #FFF; border: 3px solid #E0E0E0; border-bottom: none;
     padding: 14px 18px; font-size: 16px; cursor: pointer; border-radius: 15px 15px 0 0; 
     margin-bottom: 0px; color: #888; outline: none; transition: 0.2s; font-weight: 800;
-    font-family: 'M PLUS Rounded 1c', sans-serif; 
   }
   .tab-btn:hover { background: var(--bun-color); color: var(--meat-brown);}
   .tab-btn.active { 
@@ -139,7 +131,6 @@
   .recipe-mats { margin: 8px 0 15px 0; padding-left: 20px; font-size: 15px; color: var(--meat-brown); font-weight: 700;}
   .sub-info { font-size: 13px; color: #888; font-weight: 400;}
 
-  /* 作成画面(カート)用 - 5列 */
   .calc-menu-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; }
   .calc-menu-btn { border: 3px solid #EEEEEE; padding: 10px; border-radius: 12px; text-align: center; cursor: pointer; background: #fff; transition: 0.2s; user-select: none; box-shadow: 0 4px 0 #EEEEEE; display: flex; flex-direction: column; align-items: center; justify-content: flex-start;}
   .calc-menu-btn:hover { border-color: var(--ketchup-red); background: #FFF5F5; transform: translateY(2px); box-shadow: 0 2px 0 var(--ketchup-red); }
@@ -147,6 +138,7 @@
   .calc-menu-btn img { width: 100%; max-width: 80px; height: 80px; object-fit: cover; border-radius: 10px; margin-bottom: 8px; border: 2px solid #f0f0f0;}
   .calc-menu-title { font-size: 13px; font-weight: 800; line-height: 1.3; margin-bottom: 5px; color: var(--meat-brown); word-break: break-word;}
   .calc-menu-weight { font-size: 11px; color: #888; font-weight: 700; margin-top: auto;}
+
   @media (max-width: 850px) { .calc-menu-grid { grid-template-columns: repeat(4, 1fr); } }
   @media (max-width: 600px) { .calc-menu-grid { grid-template-columns: repeat(3, 1fr); } }
 
@@ -160,7 +152,6 @@
 
   #syncStatus { text-align: center; padding: 10px; font-weight: 800; font-size: 15px; color: var(--lettuce-dark); background: #DCEDC8; border: 3px solid var(--lettuce-green); border-radius: 12px; margin-bottom: 20px; display: none; box-shadow: 0 4px 0 var(--lettuce-green);}
 
-  /* モーダル（ルーム作成画面）用スタイル */
   .modal-overlay {
     position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); 
     z-index: 9999; display: none; justify-content: center; align-items: center; backdrop-filter: blur(5px);
@@ -181,13 +172,11 @@
     
     <div style="background: #FAFAFA; border: 3px solid #EEE; padding: 20px; border-radius: 15px; margin-bottom: 20px; text-align: left;">
       
-      <!-- 履歴から選ぶ（＋編集・削除ボタン） -->
+      <!-- 履歴から選ぶ -->
       <div class="form-group">
         <label>🕰️ 最近使ったルームの履歴</label>
         <div style="display: flex; gap: 8px; align-items: center;">
-          <select id="historySelect" style="flex: 1; padding: 12px; margin: 0;" onchange="if(this.value) document.getElementById('roomInput').value = this.value;">
-            <!-- 履歴がここに入ります -->
-          </select>
+          <select id="historySelect" style="flex: 1; padding: 12px; margin: 0;" onchange="selectHistory(this.value)"></select>
           <button class="btn-blue" style="width: auto; padding: 12px 15px; font-size: 16px; background: #FF9800; box-shadow: 0 4px 0 #E65100;" onclick="editHistory()" title="履歴の名前を変更">✏️</button>
           <button class="btn-red" style="width: auto; padding: 12px 15px; font-size: 16px; box-shadow: 0 4px 0 #424242;" onclick="deleteHistory()" title="履歴から削除">🗑️</button>
         </div>
@@ -195,11 +184,11 @@
       
       <div style="text-align: center; color: #888; font-weight: bold; margin-bottom: 15px;">または</div>
 
-      <!-- 新しいルームを作る -->
+      <!-- 新しいルームを作る / 入力して入室する -->
       <div class="form-group" style="margin-bottom: 0;">
         <label>✏️ 新しいルーム名を手入力</label>
-        <input type="text" id="roomInput" placeholder="半角英数字 (例: burger)" style="font-size: 18px; padding: 12px; text-align: center;" onkeydown="if(event.key==='Enter') joinRoom()">
-        <div style="font-size: 12px; color: #888; margin-top: 8px; text-align: center;">※新しい名前を入力して入室するとルームが自動作成されます</div>
+        <input type="text" id="roomInput" placeholder="例: バーガーショップ本店" style="font-size: 18px; padding: 12px; text-align: center;" onkeydown="if(event.key==='Enter') joinRoom()">
+        <div style="font-size: 12px; color: #888; margin-top: 8px; text-align: center;">※新しい名前を入力して入室すると自動的に作成されます。</div>
       </div>
     </div>
 
@@ -246,7 +235,7 @@
         <ul id="cartList" class="cart-list"></ul>
         <div style="background: white; padding: 15px; border-radius: 12px; border: 3px solid var(--ketchup-red); margin-bottom: 15px; text-align: center;">
           <div style="font-size: 15px; color: var(--ketchup-dark); font-weight: 800;">📦 料理の合計重量</div>
-          <div style="font-size: 32px; font-weight: 800; color: var(--ketchup-red);" id="cartTotalWeight">0.00kg</div>
+          <div style="font-size: 32px; font-weight: 800; color: var(--ketchup-red);" id="cartTotalWeight">0g</div>
         </div>
         <div style="border-top: 3px dashed #CCC; padding-top: 15px;">
           <strong style="font-size: 16px; color: var(--meat-brown);">🍳 倉庫から出す食材リスト:</strong>
@@ -273,7 +262,20 @@
     <div class="form-group"><label>メニュー名</label><input type="text" id="itemName" placeholder="例: ダブルチーズバーガー"></div>
     <div class="form-group"><label>カテゴリー・タグ (複数選択可)</label><div id="recipeTagsContainer" style="margin-top: 5px;"></div></div>
     <div class="form-group"><label>画像URL</label><input type="text" id="itemImage" placeholder="Discordの画像リンクなどを貼り付け"></div>
-    <div class="form-group"><label>完成品の重さ (kg)</label><input type="number" step="0.1" id="itemWeight" placeholder="例: 1.5"></div>
+    
+    <!-- ★ 単位選択（g/kg）メニュー登録用 -->
+    <div class="form-group">
+      <label>完成品の重さ</label>
+      <div style="display: flex; gap: 10px;">
+        <input type="number" step="0.001" id="itemWeight" placeholder="例: 1.5 (kg) または 1500 (g)">
+        <select id="itemWeightUnit" style="width: 100px;">
+          <option value="kg">kg</option>
+          <option value="g">g (グラム)</option>
+        </select>
+      </div>
+      <div style="font-size: 12px; color: #888; margin-top: 8px;">※ g(グラム)を選んだ場合、システム内では自動的にkgに変換されて保存されます。</div>
+    </div>
+
     <div class="form-group"><label>必要な食材 (プルダウンで選択)</label>
       <div id="recipeMaterialsContainer"></div>
       <button type="button" class="btn-green" onclick="addRecipeMaterialRow()">+ 食材の入力欄を追加</button>
@@ -287,7 +289,20 @@
       <div class="flex-col">
         <h2>🍅 新しい食材を仕入れリストに登録</h2>
         <div class="form-group"><label>食材名</label><input type="text" id="matName" placeholder="例: パティ、バンズ、トマト"></div>
-        <div class="form-group"><label>食材1個の重さ (kg)</label><input type="number" step="0.01" id="matWeight" placeholder="例: 0.1"></div>
+        
+        <!-- ★ 単位選択（g/kg）食材登録用 -->
+        <div class="form-group">
+          <label>食材1個の重さ</label>
+          <div style="display: flex; gap: 10px;">
+            <input type="number" step="0.001" id="matWeight" placeholder="例: 0.1 (kg) または 100 (g)">
+            <select id="matWeightUnit" style="width: 100px;">
+              <option value="kg">kg</option>
+              <option value="g">g (グラム)</option>
+            </select>
+          </div>
+          <div style="font-size: 12px; color: #888; margin-top: 8px;">※ g(グラム)を選んだ場合、システム内では自動的にkgに計算されて保存されます。</div>
+        </div>
+
         <button class="btn-blue" onclick="saveMaterial()">食材を登録 (ルームに共有)</button>
       </div>
       <div class="flex-col"><h2>📋 登録済みの食材一覧</h2><ul class="mat-list" id="materialsList"></ul></div>
@@ -324,22 +339,56 @@
 
 <script>
   // ==========================================
-  // 【新機能】ルームの管理（エラーが出ないLocalStorage方式）
+  // シンプルなルーム管理（名前のみで動作）
   // ==========================================
   let roomId = localStorage.getItem('fivem_current_room');
-  let roomHistory = JSON.parse(localStorage.getItem('fivem_room_history')) || [];
-  let dbRef;
+  
+  // 過去のID/名前オブジェクトが保存されていた場合の安全な変換処理
+  if (roomId) {
+    try {
+      let parsed = JSON.parse(roomId);
+      if (typeof parsed === 'object' && parsed.name) {
+        roomId = parsed.name; 
+      } else if (typeof parsed === 'object' && parsed.id) {
+        roomId = parsed.id;
+      }
+    } catch(e) {}
+  }
+
+  let savedHistory = localStorage.getItem('fivem_room_history');
+  let roomHistory = [];
+  if (savedHistory) {
+    try {
+      let parsed = JSON.parse(savedHistory);
+      if(Array.isArray(parsed)) {
+        roomHistory = parsed.map(item => {
+          if (typeof item === 'string') return item;
+          if (typeof item === 'object' && item.name) return item.name;
+          if (typeof item === 'object' && item.id) return item.id;
+          return null;
+        }).filter(Boolean);
+      }
+    } catch (e) {
+      roomHistory = [];
+      localStorage.removeItem('fivem_room_history'); 
+    }
+  }
+
+  let dbRef = null;
 
   // モーダルを表示
   function showRoomModal() {
     document.getElementById('roomModal').style.display = 'flex';
     renderRoomHistory();
-    // すでにルームにいる場合は「閉じる」ボタンを表示
     if(roomId) {
       document.getElementById('modalCancelBtn').style.display = 'inline-block';
       document.getElementById('roomInput').value = roomId;
     } else {
       document.getElementById('modalCancelBtn').style.display = 'none';
+      if(roomHistory.length > 0) {
+        document.getElementById('roomInput').value = roomHistory[0];
+        document.getElementById('historySelect').value = roomHistory[0];
+      }
     }
   }
 
@@ -350,41 +399,46 @@
     if(roomHistory.length === 0) {
       html = '<option value="">履歴はありません</option>';
     } else {
-      roomHistory.forEach(id => {
-        html += `<option value="${id}">${id}</option>`;
+      roomHistory.forEach(name => {
+        let val = name.replace(/"/g, '&quot;');
+        html += `<option value="${val}">${name}</option>`;
       });
     }
     select.innerHTML = html;
   }
 
-  // 入室処理
+  function selectHistory(val) {
+    if (!val) {
+      document.getElementById('roomInput').value = '';
+      return;
+    }
+    document.getElementById('roomInput').value = val;
+  }
+
   function joinRoom() {
     let input = document.getElementById('roomInput').value.trim();
     const select = document.getElementById('historySelect').value;
     
-    // 入力が優先、入力が空ならプルダウンの値
     let finalRoomId = input || select;
 
     if (!finalRoomId) return alert('ルーム名を入力するか、履歴から選んでください！');
-    if (!/^[a-zA-Z0-9_-]+$/.test(finalRoomId)) return alert('ルーム名は半角英数字（ハイフン、アンダーバー可）で入力してください！');
+    if (/[\.\#\$\[\]]/.test(finalRoomId)) return alert('ルーム名に次の文字は使えません: . # $ [ ]');
     
-    // 履歴に追加して一番上に持ってくる
-    roomHistory = roomHistory.filter(id => id !== finalRoomId);
+    roomHistory = roomHistory.filter(name => name !== finalRoomId);
     roomHistory.unshift(finalRoomId);
-    if(roomHistory.length > 20) roomHistory.pop(); // 最大20件保存
+    if(roomHistory.length > 20) roomHistory.pop();
     localStorage.setItem('fivem_room_history', JSON.stringify(roomHistory));
     
-    // 現在のルームを記憶してページを再読み込み（エラー回避）
     localStorage.setItem('fivem_current_room', finalRoomId);
     window.location.reload();
   }
 
-  // 履歴を削除（🗑️）
   function deleteHistory() {
     const select = document.getElementById('historySelect').value;
     if(!select) return alert('削除する履歴を選んでください');
+    
     if(confirm(`履歴から「${select}」を削除しますか？\n（※クラウド上のデータ自体は消えません）`)) {
-      roomHistory = roomHistory.filter(id => id !== select);
+      roomHistory = roomHistory.filter(name => name !== select);
       localStorage.setItem('fivem_room_history', JSON.stringify(roomHistory));
       renderRoomHistory();
       if(document.getElementById('roomInput').value === select) {
@@ -393,46 +447,52 @@
     }
   }
 
-  // 履歴の名前を編集（✏️）
   function editHistory() {
     const select = document.getElementById('historySelect').value;
     if(!select) return alert('名前を変更する履歴を選んでください');
     
-    const newName = prompt('新しいルーム名（半角英数字）を入力してください。\n※履歴リストの名前が変わるだけです。データの引越しは下の「データ管理」をご利用ください。', select);
+    const newName = prompt(`新しいルーム名を入力してください。`, select);
     if(!newName || newName === select) return;
-    if (!/^[a-zA-Z0-9_-]+$/.test(newName)) return alert('ルーム名は半角英数字で入力してください！');
+    if (/[\.\#\$\[\]]/.test(newName)) return alert('ルーム名に次の文字は使えません: . # $ [ ]');
     
     const index = roomHistory.indexOf(select);
     if(index !== -1) {
       roomHistory[index] = newName;
       localStorage.setItem('fivem_room_history', JSON.stringify(roomHistory));
       renderRoomHistory();
-      document.getElementById('roomInput').value = newName;
+      
+      if(document.getElementById('roomInput').value === select) {
+        document.getElementById('roomInput').value = newName;
+      }
+      
+      if (select === roomId) {
+        roomId = newName;
+        document.getElementById('storeNameDisplay').innerText = roomId;
+        localStorage.setItem('fivem_current_room', roomId);
+        window.location.reload(); // ルーム名が変わったので入り直す
+      }
     }
   }
 
-  // ルーム変更ボタン
   function changeRoom() {
     localStorage.removeItem('fivem_current_room');
     window.location.reload();
   }
 
-  // ページを開いた時の処理
-  window.onload = function() {
+  document.addEventListener('DOMContentLoaded', () => {
     if (!roomId) {
       showRoomModal();
     } else {
       document.getElementById('roomModal').style.display = 'none';
       document.getElementById('mainContainer').style.display = 'block';
       document.getElementById('roomBadge').style.display = 'inline-block';
-      document.getElementById('storeNameDisplay').innerText = roomId.toUpperCase();
+      document.getElementById('storeNameDisplay').innerText = roomId;
       initFirebase();
     }
-  };
-
+  });
 
   // ==========================================
-  // Firebaseの設定
+  // Firebaseの設定と同期処理
   // ==========================================
   function initFirebase() {
     const firebaseConfig = {
@@ -450,13 +510,13 @@
     }
     const db = firebase.database();
     
-    // ルームIDごとに保存場所を分ける
     dbRef = db.ref('rooms/' + roomId);
 
     dbRef.on('value', (snapshot) => {
       document.getElementById('syncStatus').style.display = 'block';
       
       const data = snapshot.val() || {};
+      
       materials = data.materials || [];
       recipes = data.recipes || [];
       tags = data.tags || ['メイン', 'ドリンク', 'サイド', 'セット'];
@@ -481,6 +541,19 @@
   let tags = ['メイン', 'ドリンク', 'サイド', 'セット']; 
   let cart = [];
   let editRecipeIndex = null;
+
+  // ==============================
+  // ★重さの表示を自動で綺麗にする関数（0.1kg -> 100g）
+  // ==============================
+  function formatWeight(kg) {
+    if (kg === 0) return '0g';
+    // 1kg未満は「g」で表示、1kg以上は「kg」で表示します
+    if (kg < 1) {
+      return Math.round(kg * 1000) + 'g';
+    } else {
+      return Number(kg.toFixed(3)) + 'kg';
+    }
+  }
 
   function syncData() {
     if(!dbRef) return;
@@ -519,13 +592,22 @@
     }
   }
 
+  // ★ gをkgに変換して保存する処理 (食材用)
   function saveMaterial() {
     const name = document.getElementById('matName').value.trim();
-    const weight = document.getElementById('matWeight').value;
-    if (!name || materials.some(m => m.name === name)) return;
-    materials.push({ name: name, weight: parseFloat(weight) || 0 });
+    let weight = parseFloat(document.getElementById('matWeight').value) || 0;
+    const unit = document.getElementById('matWeightUnit').value;
+
+    if (!name) return alert("食材名を入力してください！");
+    if (materials.some(m => m.name === name)) return alert("その食材はすでに登録されています！");
+
+    if (unit === 'g') weight = weight / 1000;
+
+    materials.push({ name: name, weight: weight });
     syncData();
-    document.getElementById('matName').value = ''; document.getElementById('matWeight').value = '';
+    document.getElementById('matName').value = ''; 
+    document.getElementById('matWeight').value = '';
+    document.getElementById('matWeightUnit').value = 'kg'; // kgに戻す
   }
 
   function deleteMaterial(index) {
@@ -540,21 +622,27 @@
     document.getElementById('itemName').value = ''; 
     document.getElementById('itemImage').value = ''; 
     document.getElementById('itemWeight').value = '';
+    document.getElementById('itemWeightUnit').value = 'kg'; // kgに戻す
     document.getElementById('recipeMaterialsContainer').innerHTML = '';
     document.querySelectorAll('.recipe-tag-checkbox').forEach(cb => cb.checked = false);
     addRecipeMaterialRow();
     
     document.getElementById('createTabTitle').innerText = "🍔 新しいメニューを開発して登録";
-    document.getElementById('saveRecipeBtn').innerText = "✨ メニューを保存 (ルームメンバーに共有)";
+    document.getElementById('saveRecipeBtn').innerText = "✨ メニューを保存 (ルームに共有)";
     document.getElementById('saveRecipeBtn').style.background = "var(--ketchup-red)";
     document.getElementById('saveRecipeBtn').style.boxShadow = "0 6px 0 var(--ketchup-dark)";
   }
 
+  // ★ gをkgに変換して保存する処理 (メニュー用)
   function saveRecipe() {
     const name = document.getElementById('itemName').value.trim();
     const image = document.getElementById('itemImage').value.trim();
-    const weight = document.getElementById('itemWeight').value;
+    let weight = parseFloat(document.getElementById('itemWeight').value) || 0;
+    const unit = document.getElementById('itemWeightUnit').value;
+
     if (!name) return alert("メニュー名を入力してください！");
+
+    if (unit === 'g') weight = weight / 1000;
 
     const selectedTags = Array.from(document.querySelectorAll('.recipe-tag-checkbox:checked')).map(cb => cb.value);
     const usedMaterials = [];
@@ -567,7 +655,7 @@
       }
     }
 
-    const newRecipe = { name, image, weight: parseFloat(weight) || 0, materials: usedMaterials, tags: selectedTags };
+    const newRecipe = { name, image, weight: weight, materials: usedMaterials, tags: selectedTags };
 
     if (editRecipeIndex !== null) {
       recipes[editRecipeIndex] = newRecipe;
@@ -587,6 +675,7 @@
     document.getElementById('itemName').value = recipe.name;
     document.getElementById('itemImage').value = recipe.image || '';
     document.getElementById('itemWeight').value = recipe.weight;
+    document.getElementById('itemWeightUnit').value = 'kg'; // DBの中はkgなので固定
 
     document.querySelectorAll('.recipe-tag-checkbox').forEach(cb => {
       cb.checked = recipe.tags && recipe.tags.includes(cb.value);
@@ -617,7 +706,7 @@
   }
 
   // ==============================
-  // 💾 JSONのダウンロード(エクスポート)・アップロード(インポート)
+  // 💾 JSONのダウンロード・アップロード
   // ==============================
   function exportData() {
     const dataToExport = {
@@ -634,7 +723,8 @@
     
     const d = new Date();
     const dateStr = `${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, '0')}${String(d.getDate()).padStart(2, '0')}`;
-    a.download = `${roomId}_data_${dateStr}.json`;
+    const safeRoomName = roomId ? roomId.replace(/[\.\#\$\[\]]/g, '_') : 'shop';
+    a.download = `${safeRoomName}_data_${dateStr}.json`;
     
     document.body.appendChild(a);
     a.click();
@@ -697,7 +787,7 @@
     const list = document.getElementById('materialsList');
     list.innerHTML = '';
     materials.forEach((mat, index) => {
-      list.innerHTML += `<li><span><strong>${mat.name}</strong> <span style="color:#888; font-weight:normal;">(重さ: ${mat.weight}kg)</span></span><button class="btn-red" onclick="deleteMaterial(${index})">削除</button></li>`;
+      list.innerHTML += `<li><span><strong>${mat.name}</strong> <span style="color:#888; font-weight:normal;">(重さ: ${formatWeight(mat.weight)})</span></span><button class="btn-red" onclick="deleteMaterial(${index})">削除</button></li>`;
     });
   }
 
@@ -705,7 +795,7 @@
     let html = '<option value="">-- 食材を選ぶ --</option>';
     materials.forEach(mat => {
       const isSelected = (mat.name === selectedMatName) ? 'selected' : '';
-      html += `<option value="${mat.name}" ${isSelected}>${mat.name} (重さ:${mat.weight}kg)</option>`;
+      html += `<option value="${mat.name}" ${isSelected}>${mat.name} (重さ:${formatWeight(mat.weight)})</option>`;
     });
     return html;
   }
@@ -745,7 +835,7 @@
           const matWeight = (materials.find(mat => mat.name === m.name) || {weight:0}).weight;
           const subTotal = matWeight * m.qty;
           totalMatWeight += subTotal;
-          matHtml += `<li>${m.name} × ${m.qty}個 <span class="sub-info">(食材の計: ${subTotal.toFixed(2)}kg)</span></li>`;
+          matHtml += `<li>${m.name} × ${m.qty}個 <span class="sub-info">(食材の計: ${formatWeight(subTotal)})</span></li>`;
         });
       }
 
@@ -754,8 +844,8 @@
           <img src="${imgUrl}" class="item-image" alt="画像">
           <div class="item-details">
             <h3>${recipe.name}</h3><div style="margin-bottom:10px;">${tagsHtml}</div>
-            <div class="info-text">📦 <strong>完成品の重さ:</strong> ${recipe.weight}kg</div>
-            <div class="info-text">🍳 <strong>必要な食材:</strong> (食材の総重量: ${totalMatWeight.toFixed(2)}kg)</div>
+            <div class="info-text">📦 <strong>完成品の重さ:</strong> ${formatWeight(recipe.weight)}</div>
+            <div class="info-text">🍳 <strong>必要な食材:</strong> (食材の総重量: ${formatWeight(totalMatWeight)})</div>
             <ul class="recipe-mats">${matHtml || '<li>なし</li>'}</ul>
             
             <div style="display:flex; gap:10px; margin-top: 15px;">
@@ -781,7 +871,7 @@
         <div class="calc-menu-btn" onclick="addToCart(${realIndex})">
           <img src="${imgUrl}" alt="画像">
           <div class="calc-menu-title">${recipe.name}</div>
-          <div class="calc-menu-weight">📦 重さ: ${recipe.weight}kg</div>
+          <div class="calc-menu-weight">📦 重さ: ${formatWeight(recipe.weight)}</div>
         </div>
       `;
     });
@@ -832,7 +922,7 @@
 
     if (cart.length === 0) {
       cartList.innerHTML = '<li style="color:#888; text-align:center; font-weight:normal; border:none; box-shadow:none;">左からメニューをタップして追加</li>';
-      totalWeightEl.innerText = '0.00kg'; totalMaterialsEl.innerHTML = '<li style="color:#888; font-weight:normal;">なし</li>'; return;
+      totalWeightEl.innerText = '0g'; totalMaterialsEl.innerHTML = '<li style="color:#888; font-weight:normal;">なし</li>'; return;
     }
 
     cart.forEach((item, index) => {
@@ -846,7 +936,7 @@
             <button class="btn-red" style="padding: 5px 10px; font-size:12px; margin-left: 10px;" onclick="removeCartItem(${index})">✖ 削除</button>
           </div>
           <div class="cart-controls">
-            <span style="font-size: 14px; color:#888;">📦 重さ: ${itemTotalWeight.toFixed(2)}kg</span>
+            <span style="font-size: 14px; color:#888;">📦 重さ: ${formatWeight(itemTotalWeight)}</span>
             <div style="display: flex; align-items: center;">
               <button class="btn-red cart-qty-btn" onclick="changeCartQty(${index}, -1)">-</button>
               <input type="number" class="cart-qty-input" value="${item.qty}" min="1" onchange="updateCartQty(${index}, this.value)">
@@ -867,7 +957,7 @@
       }
     });
 
-    totalWeightEl.innerText = totalWeight.toFixed(2) + 'kg';
+    totalWeightEl.innerText = formatWeight(totalWeight);
     totalMaterialsEl.innerHTML = '';
     let totalMatWeight = 0;
     
@@ -875,10 +965,10 @@
       const data = materialTotals[mName];
       const subTotalWeight = data.qty * data.weight;
       totalMatWeight += subTotalWeight;
-      totalMaterialsEl.innerHTML += `<li style="margin-bottom: 6px; font-size: 16px;">${mName} × <strong style="font-size:18px; color:var(--ketchup-red);">${data.qty}</strong> 個 <span class="sub-info">(重さ計: ${subTotalWeight.toFixed(2)}kg)</span></li>`;
+      totalMaterialsEl.innerHTML += `<li style="margin-bottom: 6px; font-size: 16px;">${mName} × <strong style="font-size:18px; color:var(--ketchup-red);">${data.qty}</strong> 個 <span class="sub-info">(重さ計: ${formatWeight(subTotalWeight)})</span></li>`;
     }
     
-    totalMaterialsEl.innerHTML += `<li style="margin-top: 15px; border-top: 3px dashed #CCC; padding-top: 15px; list-style: none; margin-left: -20px; color:var(--ketchup-dark); font-weight:900; font-size:18px;">⚖️ 取り出す食材の総重量: ${totalMatWeight.toFixed(2)}kg</li>`;
+    totalMaterialsEl.innerHTML += `<li style="margin-top: 15px; border-top: 3px dashed #CCC; padding-top: 15px; list-style: none; margin-left: -20px; color:var(--ketchup-dark); font-weight:900; font-size:18px;">⚖️ 取り出す食材の総重量: ${formatWeight(totalMatWeight)}</li>`;
   }
 </script>
 
