@@ -138,12 +138,11 @@
   .tag-checkbox-label:hover { border-color: var(--mustard-yellow); background: var(--bun-color);}
   .tag-checkbox-label input { margin-right: 8px; cursor: pointer; transform: scale(1.2);}
 
-  /* ★ レシピ帳：横3列のグリッドレイアウトに変更 */
+  /* レシピ帳 */
   #recipesList { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
   @media (max-width: 900px) { #recipesList { grid-template-columns: repeat(2, 1fr); } }
   @media (max-width: 600px) { #recipesList { grid-template-columns: 1fr; } }
 
-  /* レシピカードのデザイン（縦並びの中央揃え） */
   .item-card { 
     border: 3px solid #EEEEEE; padding: 20px; border-radius: 15px; margin-bottom: 0; 
     display: flex; flex-direction: column; align-items: center; background: #FFF; 
@@ -175,6 +174,28 @@
   .cart-controls { display: flex; justify-content: space-between; align-items: center; width: 100%; margin-top: 5px;}
   .cart-qty-btn { padding: 5px 15px; font-size: 18px; border-radius: 8px; font-weight: 900;}
   .cart-qty-input { width: 65px !important; text-align: center; font-size: 18px !important; font-weight: 900 !important; padding: 6px !important; margin: 0 5px; border: 3px solid #E0E0E0 !important; border-radius: 8px !important; }
+
+  /* 出勤表のテーブル */
+  .attendance-table { width: 100%; border-collapse: separate; border-spacing: 0; text-align: center; background: white; margin-top: 15px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border: 2px solid #E0E0E0; }
+  .attendance-table th { background: var(--mustard-yellow); padding: 15px 10px; color: var(--meat-brown); white-space: nowrap; border-bottom: 3px solid var(--mustard-dark); font-size:15px; border-right: 1px solid rgba(0,0,0,0.05);}
+  .attendance-table th:last-child { border-right: none; }
+  .attendance-table td { padding: 8px 10px; border-bottom: 1px solid #EEE; border-right: 1px dashed #EEE; white-space: nowrap; font-size: 14px; font-weight:bold; color:var(--meat-brown); vertical-align: middle;}
+  .attendance-table td:last-child { border-right: none; }
+  .attendance-table tr:last-child td { border-bottom: none; }
+  
+  .attendance-table .day-col { 
+    font-weight: 800; background: #FAFAFA; border-right: 2px solid #E0E0E0; width: 80px;
+    position: sticky; left: 0; z-index: 10; 
+  }
+  .attendance-table th.day-col { background: var(--mustard-yellow); z-index: 11; }
+  
+  .attendance-table tr.sat .day-col { background: #E3F2FD; color: #1E88E5; }
+  .attendance-table tr.sun .day-col { background: #FFEBEE; color: #E53935; }
+  .attendance-table tr.sat td:not(.day-col) { background: rgba(227, 242, 253, 0.3); }
+  .attendance-table tr.sun td:not(.day-col) { background: rgba(255, 235, 238, 0.3); }
+
+  .att-cell { cursor: pointer; transition: 0.1s;}
+  .att-cell:hover { background: #FFF9C4 !important; transform: scale(1.05); box-shadow: 0 4px 8px rgba(0,0,0,0.1); position: relative; z-index: 1; border-radius: 8px;}
 
   #syncStatus { text-align: center; padding: 10px; font-weight: 800; font-size: 15px; color: var(--lettuce-dark); background: #DCEDC8; border: 3px solid var(--lettuce-green); border-radius: 12px; margin-bottom: 20px; display: none; box-shadow: 0 4px 0 var(--lettuce-green);}
 
@@ -230,14 +251,13 @@
   <h1>🍔 FiveM 飲食店 管理システム 🍟</h1>
 </div>
 
-<!-- ★ 新レイアウト（サイドバー + メインエリア） -->
+<!-- ★ 全体レイアウト（サイドバー + メインエリア） -->
 <div class="app-layout" id="mainContainer" style="display:none;">
 
-  <!-- ★ 左パネル：スタッフ設定とオンライン状況 -->
+  <!-- 左パネル：スタッフ設定とオンライン状況 -->
   <div class="sidebar">
     <h3 style="border-bottom: 3px dashed #EEE; padding-bottom: 10px; margin-bottom: 15px;">🧑‍🍳 スタッフ設定</h3>
     <div class="form-group">
-      <!-- ★ プルダウンに変更 -->
       <select id="myStaffSelect" style="font-size: 14px; padding: 10px;">
         <option value="">-- スタッフを選択 --</option>
       </select>
@@ -258,15 +278,11 @@
     <div id="syncStatus">✅ クラウドデータベースと同期中...</div>
 
     <!-- タブボタン -->
-    <div class="tab-container">
-      <button class="tab-btn active" data-tab="tab-calc" onclick="switchTab('tab-calc')">🛒 オーダー作成</button>
-      <button class="tab-btn" data-tab="tab-logs" onclick="switchTab('tab-logs')">📜 取引ログ</button>
-      <button class="tab-btn" data-tab="tab-recipes" onclick="switchTab('tab-recipes')">📖 レシピ帳</button>
-      <button class="tab-btn" data-tab="tab-create" onclick="resetRecipeForm(); switchTab('tab-create')">🍔 新メニュー</button>
-      <button class="tab-btn" data-tab="tab-materials" onclick="switchTab('tab-materials')">⚙️ 食材・設定</button>
+    <div class="tab-container" id="tabButtonContainer">
+      <!-- JavaScriptで動的に並び替えて配置されます -->
     </div>
 
-    <!-- 【画面1】 🛒 まとめて作成(計算) -->
+    <!-- 【画面1】 🛒 オーダー作成(計算) -->
     <div id="tab-calc" class="tab-content active">
       <div class="flex-row">
         <div class="flex-col" style="flex: 2.5;">
@@ -281,7 +297,7 @@
           <h2>📋 現在のオーダーシート</h2>
           <ul id="cartList" class="cart-list"></ul>
           
-          <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+          <div style="display: flex; gap: 10px; margin-bottom: 10px;">
             <div style="flex: 1; background: white; padding: 15px; border-radius: 12px; border: 3px solid var(--mustard-yellow); text-align: center;">
               <div style="font-size: 15px; color: var(--mustard-dark); font-weight: 800;">💰 合計金額</div>
               <div style="font-size: 26px; font-weight: 800; color: var(--mustard-dark);" id="cartTotalPrice">$0</div>
@@ -291,6 +307,11 @@
               <div style="font-size: 26px; font-weight: 800; color: var(--ketchup-red);" id="cartTotalWeight">0g</div>
             </div>
           </div>
+          
+          <!-- ★ 半額券ボタン -->
+          <div style="text-align: right; margin-bottom: 15px;">
+            <button id="halfPriceBtn" class="btn-blue" style="width: auto; background: #9E9E9E; box-shadow: 0 4px 0 #616161; font-size: 14px; padding: 8px 15px;" onclick="toggleHalfPrice()">🎫 半額券を利用する (オフ)</button>
+          </div>
 
           <div style="border-top: 3px dashed #CCC; padding-top: 15px;">
             <strong style="font-size: 16px; color: var(--meat-brown);">🍳 倉庫から出す食材リスト:</strong>
@@ -298,7 +319,7 @@
           </div>
           
           <div style="display: flex; gap: 10px; margin-top: 15px;">
-            <button class="btn-blue" style="flex: 2; background: #4CAF50; box-shadow: 0 6px 0 #2E7D32; font-size: 15px; padding: 12px;" onclick="checkoutCart()">💰 お会計確定 (ログに残す)</button>
+            <button class="btn-blue" style="flex: 2; background: #4CAF50; box-shadow: 0 6px 0 #2E7D32; font-size: 15px; padding: 12px;" onclick="checkoutCart()">💰 お会計確定 (ログ記録)</button>
             <button class="btn-red" style="flex: 1; font-size: 14px; padding: 12px; background: #616161;" onclick="clearCart()">🗑️ 取り消し</button>
           </div>
         </div>
@@ -307,7 +328,13 @@
 
     <!-- 【画面2】 取引ログ -->
     <div id="tab-logs" class="tab-content">
-      <h2>📜 取引ログ (販売・買取記録)</h2>
+      <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 3px dashed var(--bun-dark); padding-bottom: 10px; margin-bottom: 20px;">
+        <h2 style="border:none; margin:0; padding:0;">📜 取引ログ (販売・買取記録)</h2>
+        <div>
+          <button class="btn-blue" style="background: #9C27B0; box-shadow: 0 4px 0 #7B1FA2; font-size:13px; padding:8px 12px;" onclick="sendMonthlyReport()">📊 今月の売上レポートを送信</button>
+          <button class="btn-red" style="font-size:13px; padding:8px 12px; margin-left:5px;" onclick="resetLogs()">🗑️ 全リセット</button>
+        </div>
+      </div>
       
       <div style="background: #FAFAFA; padding: 20px; border-radius: 15px; border: 3px solid #EEE; margin-bottom: 25px;">
         <h3 style="margin-bottom: 15px; color: var(--meat-brown);">✏️ 手動でログを追加する</h3>
@@ -324,7 +351,10 @@
             <div id="logStaffNameDisplay" style="padding: 12px; background: #E0E0E0; border-radius: 10px; font-weight:800; color: #555;">未設定 (左パネルで設定)</div>
           </div>
         </div>
-        <div class="form-group"><label>内容 (何を何個)</label><input type="text" id="logDetails" placeholder="例: トマト×10, レタス×5"></div>
+        <div class="flex-row" style="gap: 15px; margin-bottom: 15px;">
+          <div class="form-group" style="flex: 2; margin-bottom:0;"><label>内容 (商品・素材名)</label><input type="text" id="logItemName" placeholder="例: トマト"></div>
+          <div class="form-group" style="flex: 1; margin-bottom:0;"><label>個数</label><input type="number" id="logItemQty" placeholder="例: 10"></div>
+        </div>
         <div class="form-group"><label>合計金額 ($)</label><input type="number" id="logPrice" placeholder="例: 1000"></div>
         <button class="btn-blue" style="background: #2196F3; box-shadow: 0 6px 0 #1565C0;" onclick="addManualLog()">📝 ログを記録する</button>
       </div>
@@ -335,7 +365,27 @@
       </ul>
     </div>
 
-    <!-- 【画面3】 ★ レシピ帳 (3列グリッド) -->
+    <!-- 【画面3】 📅 出勤表タブ -->
+    <div id="tab-attendance" class="tab-content">
+      <h2>📅 スタッフ出勤表</h2>
+      <div id="attendanceContainer" style="overflow-x: auto; background:#FAFAFA; border:3px solid #EEE; padding:20px; border-radius:15px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+          <button class="btn-blue" style="width:auto; padding:8px 15px;" onclick="changeAttendanceMonth(-1)">◀ 前月</button>
+          <h3 id="attendanceMonthLabel" style="margin:0; font-size:24px;">2026年6月</h3>
+          <button class="btn-blue" style="width:auto; padding:8px 15px;" onclick="changeAttendanceMonth(1)">次月 ▶</button>
+        </div>
+        <div style="font-size:13px; color:#888; margin-bottom:10px; text-align:right;">※マスをクリックすると時間を手動で変更できます。</div>
+        
+        <table class="attendance-table">
+          <thead>
+            <tr id="attendanceHeader"></tr>
+          </thead>
+          <tbody id="attendanceBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- 【画面4】 登録済みメニュー一覧 -->
     <div id="tab-recipes" class="tab-content">
       <h2>📖 お店のレシピ帳</h2>
       <div class="filter-bar">
@@ -345,7 +395,7 @@
       <div id="recipesList"></div>
     </div>
 
-    <!-- 【画面4】 メニュー(完成品)の登録・編集 -->
+    <!-- 【画面5】 メニュー(完成品)の登録・編集 -->
     <div id="tab-create" class="tab-content">
       <h2 id="createTabTitle">🍔 新しいメニューを開発して登録</h2>
       <div class="form-group"><label>メニュー名</label><input type="text" id="itemName" placeholder="例: ダブルチーズバーガー"></div>
@@ -366,14 +416,14 @@
       <button id="saveRecipeBtn" class="btn-blue" onclick="saveRecipe()">✨ メニューを保存 (ルームに共有)</button>
     </div>
 
-    <!-- 【画面5】 素材・タグ・システム設定 -->
+    <!-- 【画面6】 素材・タグ・システム設定 -->
     <div id="tab-materials" class="tab-content">
       
-      <!-- ★ スタッフ名登録セクションを追加 -->
       <div class="flex-row" style="margin-bottom: 30px; border-bottom: 3px dashed #CCC; padding-bottom: 30px;">
         <div class="flex-col">
           <h2>👥 新しいスタッフを登録</h2>
           <div class="form-group"><label>スタッフ名</label><input type="text" id="staffNameInput" placeholder="例: やまだ"></div>
+          <div class="form-group"><label>役職 (任意)</label><input type="text" id="staffRoleInput" placeholder="例: 店長, アルバイト"></div>
           <button class="btn-blue" style="background:#9C27B0; box-shadow: 0 6px 0 #7B1FA2;" onclick="saveStaff()">スタッフを登録 (ルームに共有)</button>
         </div>
         <div class="flex-col"><h2>📋 登録済みのスタッフ一覧</h2><ul class="mat-list" id="staffsList"></ul></div>
@@ -425,6 +475,10 @@
           <div class="form-group">
             <label>📜 取引ログ専用 Webhook URL</label>
             <input type="text" id="webhookUrlLogsInput" placeholder="販売や買取の記録だけを別チャンネルに送る場合はここに入力">
+          </div>
+          <div class="form-group">
+            <label>📊 月間レポート専用 Webhook URL</label>
+            <input type="text" id="webhookUrlMonthlyInput" placeholder="月間レポートの集計を送信するチャンネルがあれば入力">
             <div style="font-size: 13px; color: #888; margin-top: 8px; font-weight:bold;">※設定すると自動でDiscordに送信されます。(空欄でオフ)</div>
           </div>
           <button class="btn-blue" style="background: #5865F2; box-shadow: 0 6px 0 #3F48CC;" onclick="saveWebhook()">Webhookを保存</button>
@@ -451,6 +505,16 @@
     </div>
   </div> <!-- main-content 終了 -->
 </div> <!-- app-layout 終了 -->
+
+<!-- ▼ 非表示にしているタブボタンの実体 (JavaScriptでクローンして並び替える用) ▼ -->
+<div id="hiddenTabButtons" style="display:none;">
+  <button class="tab-btn" data-tab="tab-calc" onclick="switchTab('tab-calc')">🛒 オーダー作成</button>
+  <button class="tab-btn" data-tab="tab-logs" onclick="switchTab('tab-logs')">📜 取引ログ</button>
+  <button class="tab-btn" data-tab="tab-attendance" onclick="switchTab('tab-attendance')">📅 出勤表</button>
+  <button class="tab-btn" data-tab="tab-recipes" onclick="switchTab('tab-recipes')">📖 レシピ帳</button>
+  <button class="tab-btn" data-tab="tab-create" onclick="resetRecipeForm(); switchTab('tab-create')">🍔 新メニュー</button>
+  <button class="tab-btn" data-tab="tab-materials" onclick="switchTab('tab-materials')">⚙️ 設定</button>
+</div>
 
 <script>
   // ==========================================
@@ -495,15 +559,26 @@
   }
 
   // ★ タブの並び順の管理
-  const defaultTabOrder = ['tab-calc', 'tab-logs', 'tab-recipes', 'tab-create', 'tab-materials'];
-  let currentTabOrder = JSON.parse(localStorage.getItem('fivem_tab_order')) || defaultTabOrder;
+  const defaultTabOrder = ['tab-calc', 'tab-logs', 'tab-attendance', 'tab-recipes', 'tab-create', 'tab-materials'];
+  let currentTabOrder = JSON.parse(localStorage.getItem('fivem_tab_order')) || [];
+  
+  defaultTabOrder.forEach(tabId => {
+    if(!currentTabOrder.includes(tabId)) currentTabOrder.push(tabId);
+  });
+  currentTabOrder = currentTabOrder.filter(tabId => defaultTabOrder.includes(tabId));
 
   function applyTabOrder() {
-    const container = document.querySelector('.tab-container');
+    const container = document.getElementById('tabButtonContainer');
+    container.innerHTML = '';
     currentTabOrder.forEach(tabId => {
-      const btn = document.querySelector(`.tab-btn[data-tab="${tabId}"]`);
-      if(btn) container.appendChild(btn);
+      const templateBtn = document.querySelector(`#hiddenTabButtons .tab-btn[data-tab="${tabId}"]`);
+      if(templateBtn) {
+        const clone = templateBtn.cloneNode(true);
+        if(tabId === currentTabOrder[0]) clone.classList.add('active');
+        container.appendChild(clone);
+      }
     });
+    switchTab(currentTabOrder[0]);
   }
 
   document.addEventListener('DOMContentLoaded', () => {
@@ -627,15 +702,20 @@
   // ==========================================
   // Firebaseの設定とデータ変数
   // ==========================================
-  let staffs = []; // ★ スタッフ一覧
+  let staffs = []; 
   let materials = [];
   let recipes = [];
   let tags = ['メイン', 'ドリンク', 'サイド', 'セット']; 
   let logsData = [];
+  let attendanceData = {}; 
   let webhookUrl = "";
   let webhookUrlLogs = "";
+  let webhookUrlMonthly = ""; 
   let cart = [];
   let editRecipeIndex = null;
+
+  // ★ 半額券のフラグ
+  let isHalfPrice = false;
 
   let myUid = localStorage.getItem('fivem_my_uid');
   if(!myUid) {
@@ -644,6 +724,7 @@
   }
   let myStaffName = localStorage.getItem('fivem_staff_name') || '';
   let currentPresenceData = null;
+  let targetAttendanceDate = new Date(); 
 
   function initFirebase() {
     const firebaseConfig = {
@@ -674,22 +755,26 @@
         }
       }
 
-      staffs = data.staffs || []; // ★ スタッフデータの読み込み
+      staffs = (data.staffs || []).map(s => typeof s === 'string' ? { name: s, role: '' } : s);
       materials = data.materials || [];
       recipes = data.recipes || [];
       tags = data.tags || ['メイン', 'ドリンク', 'サイド', 'セット'];
+      attendanceData = data.attendance || {};
       
       webhookUrl = (data.settings && data.settings.webhookUrl) ? data.settings.webhookUrl : "";
       webhookUrlLogs = (data.settings && data.settings.webhookUrlLogs) ? data.settings.webhookUrlLogs : "";
+      webhookUrlMonthly = (data.settings && data.settings.webhookUrlMonthly) ? data.settings.webhookUrlMonthly : "";
       if (document.activeElement !== document.getElementById('webhookUrlInput')) document.getElementById('webhookUrlInput').value = webhookUrl;
       if (document.activeElement !== document.getElementById('webhookUrlLogsInput')) document.getElementById('webhookUrlLogsInput').value = webhookUrlLogs;
+      if (document.activeElement !== document.getElementById('webhookUrlMonthlyInput')) document.getElementById('webhookUrlMonthlyInput').value = webhookUrlMonthly;
 
       if (data.logs) logsData = Object.values(data.logs).sort((a, b) => a.timestamp - b.timestamp);
       else logsData = [];
 
-      renderStaffs(); // ★ スタッフ一覧の描画
+      renderStaffs(); 
       renderTags(); updateTagDropdowns(); renderMaterials(); updateMaterialDropdowns();
       renderRecipes(); renderCalcMenu(); renderCart(); renderLogs(); renderTabOrderSettings();
+      renderAttendance();
     });
 
     setupPresence();
@@ -697,12 +782,10 @@
   }
 
   // ==============================
-  // 🟢 スタッフ出退勤とオンライン時間
+  // 🟢 スタッフ出退勤とオンライン時間・出勤表
   // ==============================
   function setupPresence() {
-    if(myStaffName) {
-      document.getElementById('logStaffNameDisplay').innerText = myStaffName;
-    }
+    if(myStaffName) document.getElementById('logStaffNameDisplay').innerText = myStaffName;
 
     const amOnline = firebase.database().ref('.info/connected');
     const userRef = dbRef.child('presence/' + myUid);
@@ -721,30 +804,32 @@
     setInterval(renderPresence, 60000); 
   }
 
-  // ★ スタッフプルダウンの描画
   function renderStaffs() {
     const list = document.getElementById('staffsList');
     list.innerHTML = '';
     staffs.forEach((staff, index) => {
-      list.innerHTML += `<li><span>🧑‍🍳 <strong>${staff}</strong></span><button class="btn-red" onclick="deleteStaff(${index})">削除</button></li>`;
+      const roleStr = staff.role ? ` <span style="font-size:12px; color:#888;">(${staff.role})</span>` : '';
+      list.innerHTML += `<li><span>🧑‍🍳 <strong>${staff.name}</strong>${roleStr}</span><button class="btn-red" onclick="deleteStaff(${index})">削除</button></li>`;
     });
 
     const select = document.getElementById('myStaffSelect');
     const currentVal = myStaffName || select.value;
     let options = '<option value="">-- スタッフを選択 --</option>';
     staffs.forEach(staff => {
-      options += `<option value="${staff}" ${staff === currentVal ? 'selected' : ''}>${staff}</option>`;
+      options += `<option value="${staff.name}" ${staff.name === currentVal ? 'selected' : ''}>${staff.name} ${staff.role? '('+staff.role+')':''}</option>`;
     });
     select.innerHTML = options;
   }
 
   function saveStaff() {
     const name = document.getElementById('staffNameInput').value.trim();
+    const role = document.getElementById('staffRoleInput').value.trim();
     if (!name) return alert("スタッフ名を入力してください！");
-    if (staffs.includes(name)) return alert("そのスタッフ名はすでに登録されています！");
-    staffs.push(name);
+    if (staffs.some(s => s.name === name)) return alert("そのスタッフ名はすでに登録されています！");
+    staffs.push({ name: name, role: role });
     syncData();
     document.getElementById('staffNameInput').value = '';
+    document.getElementById('staffRoleInput').value = '';
   }
 
   function deleteStaff(index) {
@@ -754,28 +839,39 @@
     }
   }
 
-  // ★ 出勤時の処理（プルダウンから取得）
   function setMyName() {
     const name = document.getElementById('myStaffSelect').value;
-    if(!name) return alert('プルダウンからスタッフ名を選んでください！\n（名前がない場合は「⚙️食材・設定」タブから登録してください）');
+    if(!name) return alert('プルダウンからスタッフ名を選んでください！\n（名前がない場合は「⚙️設定」タブから登録してください）');
     
     myStaffName = name;
     localStorage.setItem('fivem_staff_name', myStaffName);
     document.getElementById('logStaffNameDisplay').innerText = myStaffName;
     
-    if(dbRef) {
-      dbRef.child('presence/' + myUid).update({ 
-        name: myStaffName, online: true, loginTime: Date.now(), lastSeen: firebase.database.ServerValue.TIMESTAMP 
-      });
+    if(dbRef) dbRef.child('presence/' + myUid).update({ name: myStaffName, online: true, loginTime: Date.now(), lastSeen: firebase.database.ServerValue.TIMESTAMP });
+    
+    const d = new Date();
+    const ym = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+    const day = String(d.getDate()).padStart(2,'0');
+    const timeStr = `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+    
+    const currentIn = attendanceData?.[ym]?.[day]?.[myStaffName]?.in;
+    if (!currentIn) {
+      if(dbRef) dbRef.child(`attendance/${ym}/${day}/${myStaffName}`).update({ in: timeStr });
     }
     alert("出勤しました！");
   }
 
   function clockOut() {
     if(!myStaffName) return alert("まだ出勤していません！");
-    if(dbRef) {
-      dbRef.child('presence/' + myUid).update({ online: false, lastSeen: firebase.database.ServerValue.TIMESTAMP });
-    }
+    
+    if(dbRef) dbRef.child('presence/' + myUid).update({ online: false, lastSeen: firebase.database.ServerValue.TIMESTAMP });
+    
+    const d = new Date();
+    const ym = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+    const day = String(d.getDate()).padStart(2,'0');
+    const timeStr = `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+    if(dbRef) dbRef.child(`attendance/${ym}/${day}/${myStaffName}`).update({ out: timeStr });
+    
     alert("退勤しました。お疲れ様でした！");
   }
 
@@ -806,13 +902,109 @@
   }
 
   // ==============================
-  // 🔄 タブの並び替え機能
+  // 📅 出勤表タブの機能
+  // ==============================
+  function changeAttendanceMonth(diff) {
+    targetAttendanceDate.setMonth(targetAttendanceDate.getMonth() + diff);
+    renderAttendance();
+  }
+
+  function renderAttendance() {
+    if(!staffs || staffs.length === 0) {
+      document.getElementById('attendanceBody').innerHTML = '<tr><td style="border:none;">スタッフを登録してください</td></tr>';
+      return;
+    }
+
+    const ym = `${targetAttendanceDate.getFullYear()}-${String(targetAttendanceDate.getMonth()+1).padStart(2,'0')}`;
+    document.getElementById('attendanceMonthLabel').innerText = `${targetAttendanceDate.getFullYear()}年${targetAttendanceDate.getMonth()+1}月`;
+    
+    const attendanceCounts = {};
+    staffs.forEach(s => attendanceCounts[s.name] = 0);
+    const daysInMonth = new Date(targetAttendanceDate.getFullYear(), targetAttendanceDate.getMonth()+1, 0).getDate();
+
+    for(let i=1; i<=daysInMonth; i++) {
+      const dayStr = String(i).padStart(2,'0');
+      staffs.forEach(s => {
+        const att = attendanceData?.[ym]?.[dayStr]?.[s.name];
+        if (att && (att.in || att.out)) {
+          attendanceCounts[s.name]++;
+        }
+      });
+    }
+
+    const header = document.getElementById('attendanceHeader');
+    let headHtml = `<th class="day-col">日付</th>`;
+    staffs.forEach(s => {
+      headHtml += `
+        <th>
+          <div style="font-size:12px; background:white; color:var(--mustard-dark); border-radius:15px; display:inline-block; padding:4px 10px; margin-bottom:8px; box-shadow:0 2px 0 rgba(0,0,0,0.1); font-weight:800;">
+            🏢 出勤: ${attendanceCounts[s.name]}日
+          </div><br>
+          ${s.name}<br>
+          <span style="font-size:12px; font-weight:normal; color:#FFF;">${s.role||''}</span>
+        </th>`;
+    });
+    header.innerHTML = headHtml;
+
+    const tbody = document.getElementById('attendanceBody');
+    let bodyHtml = '';
+    const dayNames = ['日','月','火','水','木','金','土'];
+
+    for(let i=1; i<=daysInMonth; i++) {
+      const d = new Date(targetAttendanceDate.getFullYear(), targetAttendanceDate.getMonth(), i);
+      const dayStr = String(i).padStart(2,'0');
+      const dayOfWeek = dayNames[d.getDay()];
+      
+      let rowClass = '';
+      if(d.getDay() === 0) rowClass = 'sun';
+      if(d.getDay() === 6) rowClass = 'sat';
+
+      bodyHtml += `<tr class="${rowClass}"><td class="day-col">${i}日(${dayOfWeek})</td>`;
+      
+      staffs.forEach(s => {
+        const att = attendanceData?.[ym]?.[dayStr]?.[s.name];
+        const inTime = att?.in || '';
+        const outTime = att?.out || '';
+        
+        let cellText = '<span style="color:#CCC; font-weight:normal;">休</span>';
+        if (inTime || outTime) {
+          cellText = `
+            <div style="display:flex; flex-direction:column; gap:4px; align-items:center;">
+              <span style="font-size:13px; color:#1565C0;">出: ${inTime||'--:--'}</span>
+              <span style="font-size:13px; color:#C62828;">退: ${outTime||'--:--'}</span>
+            </div>
+          `;
+        }
+        bodyHtml += `<td class="att-cell" onclick="editAttendance('${ym}', '${dayStr}', '${s.name}')">${cellText}</td>`;
+      });
+      bodyHtml += `</tr>`;
+    }
+    tbody.innerHTML = bodyHtml;
+  }
+
+  function editAttendance(ym, day, staffName) {
+    const att = attendanceData?.[ym]?.[day]?.[staffName] || {in: '', out: ''};
+    const input = prompt(`${ym}-${day} 【${staffName}】 の出退勤時間を入力してください。\nフォーマット例: 10:00 - 18:00\n（全て消して空にすると記録が削除されます）`, `${att.in||''} - ${att.out||''}`.replace(/^ - $/, ''));
+    if (input === null) return; 
+    
+    if (input.trim() === '' || input.trim() === '-') {
+      dbRef.child(`attendance/${ym}/${day}/${staffName}`).remove();
+    } else {
+      const parts = input.split(/[-~～]/);
+      const inT = parts[0]?.trim() || '';
+      const outT = parts[1]?.trim() || '';
+      dbRef.child(`attendance/${ym}/${day}/${staffName}`).update({ in: inT, out: outT });
+    }
+  }
+
+  // ==============================
+  // 🔄 タブの並び替え・切り替え
   // ==============================
   function renderTabOrderSettings() {
     const list = document.getElementById('tabOrderList');
     list.innerHTML = '';
     const tabNames = {
-      'tab-calc': '🛒 オーダー作成', 'tab-logs': '📜 取引ログ',
+      'tab-calc': '🛒 オーダー作成', 'tab-logs': '📜 取引ログ', 'tab-attendance': '📅 出勤表',
       'tab-recipes': '📖 レシピ帳', 'tab-create': '🍔 新メニュー開発', 'tab-materials': '⚙️ 食材・設定'
     };
     currentTabOrder.forEach((tabId, index) => {
@@ -856,8 +1048,9 @@
   function saveWebhook() {
     const url = document.getElementById('webhookUrlInput').value.trim();
     const urlLogs = document.getElementById('webhookUrlLogsInput').value.trim();
+    const urlMonthly = document.getElementById('webhookUrlMonthlyInput').value.trim();
     if (dbRef) {
-      dbRef.child('settings').update({ webhookUrl: url, webhookUrlLogs: urlLogs }).then(() => {
+      dbRef.child('settings').update({ webhookUrl: url, webhookUrlLogs: urlLogs, webhookUrlMonthly: urlMonthly }).then(() => {
         alert("Discord Webhook を保存しました！");
       }).catch(e => alert("エラー: " + e.message));
     }
@@ -889,15 +1082,92 @@
     sendWebhookLogs(msg);
   }
 
+  function resetLogs() {
+    if (!dbRef) return;
+    if (confirm("本当に取引ログを全て削除しますか？\n（※この操作は取り消せません）")) {
+      dbRef.child('logs').remove();
+      alert("取引ログをリセットしました。");
+    }
+  }
+
   function addManualLog() {
     if (!myStaffName) return alert("左のパネルでスタッフ名を選んで『出勤』してから記録してください！");
     const type = document.getElementById('logType').value;
-    const details = document.getElementById('logDetails').value.trim();
+    const itemName = document.getElementById('logItemName').value.trim();
+    const itemQty = document.getElementById('logItemQty').value;
     const price = document.getElementById('logPrice').value;
-    if (!details) return alert("取引内容を入力してください！");
+    if (!itemName || !itemQty) return alert("商品名と個数を入力してください！");
     
+    const details = `${itemName} × ${itemQty}個`;
     addLogEntry(type, myStaffName, details, price || 0);
-    document.getElementById('logDetails').value = ''; document.getElementById('logPrice').value = '';
+    document.getElementById('logItemName').value = ''; document.getElementById('logItemQty').value = ''; document.getElementById('logPrice').value = '';
+  }
+
+  function sendMonthlyReport() {
+    const d = new Date();
+    const currentMonthStr = `${d.getFullYear()}年${d.getMonth()+1}月`;
+    if(!confirm(`【確認】\n${currentMonthStr}の販売記録（売上）を集計してDiscordに送信しますか？\n※販売以外のログは計算されません。`)) return;
+
+    let monthlySales = 0;
+    let itemsSold = {};
+    const currentYear = d.getFullYear();
+    const currentMonth = d.getMonth();
+
+    logsData.forEach(log => {
+      if (!log.type.includes('販売')) return;
+      const logDate = new Date(log.timestamp);
+      if (logDate.getFullYear() === currentYear && logDate.getMonth() === currentMonth) {
+        monthlySales += Number(log.price) || 0;
+        const parts = log.details.split(',');
+        parts.forEach(p => {
+          const match = p.match(/(.+?) × (\d+)/);
+          if(match) {
+            const itemName = match[1].trim();
+            const qty = Number(match[2]);
+            itemsSold[itemName] = (itemsSold[itemName] || 0) + qty;
+          }
+        });
+      }
+    });
+
+    let reportMsg = `**📊 【${currentMonthStr} 店舗売上レポート】**\n\n`;
+    reportMsg += `💰 **合計売上金額: $${monthlySales.toLocaleString()}**\n\n`;
+    reportMsg += `**🍔 販売商品内訳:**\n`;
+    
+    const sortedItems = Object.entries(itemsSold).sort((a,b) => b[1] - a[1]);
+    if(sortedItems.length === 0) {
+      reportMsg += `今月の販売記録はありません。\n`;
+    } else {
+      sortedItems.forEach(([name, qty]) => {
+        reportMsg += `・${name}: ${qty}個\n`;
+      });
+    }
+
+    const targetUrl = webhookUrlMonthly || webhookUrlLogs || webhookUrl; 
+    if(!targetUrl) return alert("Discord Webhook が設定されていません！「⚙️設定」から設定してください。");
+
+    fetch(targetUrl, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username: `${roomName || '飲食店'} 売上レポート`, content: reportMsg })
+    }).then(() => {
+      alert("月間レポートを送信しました！");
+    }).catch(e => alert("送信エラー: " + e.message));
+  }
+
+  // ★ 半額券機能
+  function toggleHalfPrice() {
+    isHalfPrice = !isHalfPrice;
+    const btn = document.getElementById('halfPriceBtn');
+    if (isHalfPrice) {
+      btn.innerText = '🎫 半額券：オン中 (50%OFF)';
+      btn.style.background = '#E63946'; 
+      btn.style.boxShadow = '0 4px 0 #B71C1C';
+    } else {
+      btn.innerText = '🎫 半額券を利用する (オフ)';
+      btn.style.background = '#9E9E9E';
+      btn.style.boxShadow = '0 4px 0 #616161';
+    }
+    renderCart();
   }
 
   function checkoutCart() {
@@ -905,11 +1175,23 @@
     if (!myStaffName) return alert("左のパネルでスタッフ名を選んで『出勤』してからお会計をしてください！");
     
     const details = cart.map(c => `${c.recipe.name} × ${c.qty}`).join(", ");
-    const totalPrice = cart.reduce((sum, item) => sum + ((item.recipe.price || 0) * item.qty), 0);
+    let totalPrice = cart.reduce((sum, item) => sum + ((item.recipe.price || 0) * item.qty), 0);
     
-    if(confirm(`【お会計の確認】\n合計金額: $${totalPrice.toLocaleString()}\n\nこの内容で販売を確定し、ログに記録しますか？`)) {
-      addLogEntry("🟢 販売 (売上)", myStaffName, details, totalPrice);
-      cart = []; renderCart(); alert("お会計が完了し、ログに記録されました！");
+    // 半額計算
+    if (isHalfPrice) totalPrice = Math.floor(totalPrice / 2);
+    
+    if(confirm(`【お会計の確認】\n合計金額: $${totalPrice.toLocaleString()} ${isHalfPrice ? '(半額適用済)' : ''}\n\nこの内容で販売を確定し、ログに記録しますか？`)) {
+      addLogEntry("🟢 販売 (売上)", myStaffName, details + (isHalfPrice ? ' [半額券利用]' : ''), totalPrice);
+      cart = []; 
+      
+      // 半額リセット
+      isHalfPrice = false;
+      document.getElementById('halfPriceBtn').innerText = '🎫 半額券を利用する (オフ)';
+      document.getElementById('halfPriceBtn').style.background = '#9E9E9E';
+      document.getElementById('halfPriceBtn').style.boxShadow = '0 4px 0 #616161';
+      
+      renderCart(); 
+      alert("お会計が完了し、ログに記録されました！");
     }
   }
 
@@ -936,7 +1218,6 @@
         </li>
       `;
     });
-    list.scrollTop = list.scrollHeight;
   }
 
   // ==============================
@@ -953,7 +1234,7 @@
     dbRef.child('materials').set(materials);
     dbRef.child('recipes').set(recipes);
     dbRef.child('tags').set(tags);
-    dbRef.child('staffs').set(staffs); // ★ スタッフ一覧も保存
+    dbRef.child('staffs').set(staffs); 
   }
 
   function saveTag() {
@@ -1052,7 +1333,7 @@
   // 💾 JSONのダウンロード・アップロード
   // ==============================
   function exportData() {
-    const dataToExport = { roomName: roomName, materials: materials, recipes: recipes, tags: tags, staffs: staffs, settings: { webhookUrl: webhookUrl, webhookUrlLogs: webhookUrlLogs }, logs: logsData };
+    const dataToExport = { roomName: roomName, materials: materials, recipes: recipes, tags: tags, staffs: staffs, attendance: attendanceData, settings: { webhookUrl: webhookUrl, webhookUrlLogs: webhookUrlLogs, webhookUrlMonthly: webhookUrlMonthly }, logs: logsData };
     const jsonStr = JSON.stringify(dataToExport, null, 2);
     const blob = new Blob([jsonStr], { type: "application/json" });
     const url = URL.createObjectURL(blob);
@@ -1077,6 +1358,7 @@
             materials: importedData.materials || [], recipes: importedData.recipes || [], 
             tags: importedData.tags || ['メイン', 'ドリンク', 'サイド', 'セット'],
             staffs: importedData.staffs || [],
+            attendance: importedData.attendance || {},
             settings: importedData.settings || {}, logs: importedData.logs || {} 
           }).then(() => { alert("✅ 復元が完了しました！"); event.target.value = ''; }).catch(error => { alert("❌ エラー: " + error.message); event.target.value = ''; });
         } else { event.target.value = ''; }
@@ -1125,7 +1407,6 @@
     document.querySelectorAll('.recipe-mat-select').forEach(select => { const val = select.value; select.innerHTML = getMaterialOptionsHtml(); if (val) select.value = val; });
   }
 
-  // ★ レシピ帳の横3列レイアウト対応
   function renderRecipes() {
     const list = document.getElementById('recipesList'); const filterValue = document.getElementById('filterTag').value; list.innerHTML = '';
     const targetRecipes = filterValue ? recipes.filter(r => r.tags && r.tags.includes(filterValue)) : recipes;
@@ -1197,7 +1478,18 @@
     let newQty = parseInt(value, 10); if (isNaN(newQty) || newQty <= 0) { cart.splice(index, 1); } else { cart[index].qty = newQty; } renderCart();
   }
   function removeCartItem(index) { cart.splice(index, 1); renderCart(); }
-  function clearCart() { if(cart.length > 0 && confirm("オーダーをすべてクリアしますか？")) { cart = []; renderCart(); } }
+  
+  // ★ 半額ボタンのクリア追加
+  function clearCart() { 
+    if(cart.length > 0 && confirm("オーダーをすべてクリアしますか？")) { 
+      cart = []; 
+      isHalfPrice = false; 
+      document.getElementById('halfPriceBtn').innerText = '🎫 半額券を利用する (オフ)';
+      document.getElementById('halfPriceBtn').style.background = '#9E9E9E';
+      document.getElementById('halfPriceBtn').style.boxShadow = '0 4px 0 #616161';
+      renderCart(); 
+    } 
+  }
 
   function renderCart() {
     const cartList = document.getElementById('cartList');
@@ -1246,7 +1538,15 @@
     });
 
     totalWeightEl.innerText = formatWeight(totalWeight);
-    totalPriceEl.innerText = '$' + totalPrice.toLocaleString(); 
+    
+    // ★ 合計金額の半額表示対応
+    if (isHalfPrice) {
+      const halfPrice = Math.floor(totalPrice / 2);
+      totalPriceEl.innerHTML = `<span style="text-decoration: line-through; font-size:16px; color:#888;">$${totalPrice.toLocaleString()}</span><br><span style="color:#E63946;">$${halfPrice.toLocaleString()}</span>`;
+    } else {
+      totalPriceEl.innerText = '$' + totalPrice.toLocaleString(); 
+    }
+
     totalMaterialsEl.innerHTML = '';
     let totalMatWeight = 0;
     
