@@ -131,6 +131,7 @@
   .recipe-mats { margin: 8px 0 15px 0; padding-left: 20px; font-size: 15px; color: var(--meat-brown); font-weight: 700;}
   .sub-info { font-size: 13px; color: #888; font-weight: 400;}
 
+  /* 作成画面(カート)用 - 5列 */
   .calc-menu-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; }
   .calc-menu-btn { border: 3px solid #EEEEEE; padding: 10px; border-radius: 12px; text-align: center; cursor: pointer; background: #fff; transition: 0.2s; user-select: none; box-shadow: 0 4px 0 #EEEEEE; display: flex; flex-direction: column; align-items: center; justify-content: flex-start;}
   .calc-menu-btn:hover { border-color: var(--ketchup-red); background: #FFF5F5; transform: translateY(2px); box-shadow: 0 2px 0 var(--ketchup-red); }
@@ -233,10 +234,19 @@
       <div class="flex-col" style="flex: 1.5; background: var(--bg-cream); padding: 25px; border-radius: 15px; border: 4px solid #E0E0E0;">
         <h2>📋 現在のオーダーシート</h2>
         <ul id="cartList" class="cart-list"></ul>
-        <div style="background: white; padding: 15px; border-radius: 12px; border: 3px solid var(--ketchup-red); margin-bottom: 15px; text-align: center;">
-          <div style="font-size: 15px; color: var(--ketchup-dark); font-weight: 800;">📦 料理の合計重量</div>
-          <div style="font-size: 32px; font-weight: 800; color: var(--ketchup-red);" id="cartTotalWeight">0g</div>
+        
+        <!-- ★ 金額と重量の合計パネル -->
+        <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+          <div style="flex: 1; background: white; padding: 15px; border-radius: 12px; border: 3px solid var(--mustard-yellow); text-align: center;">
+            <div style="font-size: 15px; color: var(--mustard-dark); font-weight: 800;">💰 合計金額</div>
+            <div style="font-size: 30px; font-weight: 800; color: var(--mustard-dark);" id="cartTotalPrice">$0</div>
+          </div>
+          <div style="flex: 1; background: white; padding: 15px; border-radius: 12px; border: 3px solid var(--ketchup-red); text-align: center;">
+            <div style="font-size: 15px; color: var(--ketchup-dark); font-weight: 800;">📦 料理の重量</div>
+            <div style="font-size: 30px; font-weight: 800; color: var(--ketchup-red);" id="cartTotalWeight">0g</div>
+          </div>
         </div>
+
         <div style="border-top: 3px dashed #CCC; padding-top: 15px;">
           <strong style="font-size: 16px; color: var(--meat-brown);">🍳 倉庫から出す食材リスト:</strong>
           <ul id="cartTotalMaterials" class="recipe-mats" style="margin-top: 10px;"></ul>
@@ -263,7 +273,13 @@
     <div class="form-group"><label>カテゴリー・タグ (複数選択可)</label><div id="recipeTagsContainer" style="margin-top: 5px;"></div></div>
     <div class="form-group"><label>画像URL</label><input type="text" id="itemImage" placeholder="Discordの画像リンクなどを貼り付け"></div>
     
-    <!-- ★ 単位選択（g/kg）メニュー登録用 -->
+    <!-- ★ 販売価格の入力欄 -->
+    <div class="form-group">
+      <label>販売価格 ($)</label>
+      <input type="number" id="itemPrice" placeholder="例: 500">
+    </div>
+
+    <!-- 単位選択（g/kg）メニュー登録用 -->
     <div class="form-group">
       <label>完成品の重さ</label>
       <div style="display: flex; gap: 10px;">
@@ -290,7 +306,7 @@
         <h2>🍅 新しい食材を仕入れリストに登録</h2>
         <div class="form-group"><label>食材名</label><input type="text" id="matName" placeholder="例: パティ、バンズ、トマト"></div>
         
-        <!-- ★ 単位選択（g/kg）食材登録用 -->
+        <!-- 単位選択（g/kg）食材登録用 -->
         <div class="form-group">
           <label>食材1個の重さ</label>
           <div style="display: flex; gap: 10px;">
@@ -543,11 +559,10 @@
   let editRecipeIndex = null;
 
   // ==============================
-  // ★重さの表示を自動で綺麗にする関数（0.1kg -> 100g）
+  // 重さの表示を自動で綺麗にする関数（0.1kg -> 100g）
   // ==============================
   function formatWeight(kg) {
     if (kg === 0) return '0g';
-    // 1kg未満は「g」で表示、1kg以上は「kg」で表示します
     if (kg < 1) {
       return Math.round(kg * 1000) + 'g';
     } else {
@@ -592,7 +607,6 @@
     }
   }
 
-  // ★ gをkgに変換して保存する処理 (食材用)
   function saveMaterial() {
     const name = document.getElementById('matName').value.trim();
     let weight = parseFloat(document.getElementById('matWeight').value) || 0;
@@ -621,6 +635,7 @@
     editRecipeIndex = null;
     document.getElementById('itemName').value = ''; 
     document.getElementById('itemImage').value = ''; 
+    document.getElementById('itemPrice').value = ''; // ★ 金額リセット
     document.getElementById('itemWeight').value = '';
     document.getElementById('itemWeightUnit').value = 'kg'; // kgに戻す
     document.getElementById('recipeMaterialsContainer').innerHTML = '';
@@ -633,10 +648,11 @@
     document.getElementById('saveRecipeBtn').style.boxShadow = "0 6px 0 var(--ketchup-dark)";
   }
 
-  // ★ gをkgに変換して保存する処理 (メニュー用)
+  // ★ メニューの保存処理
   function saveRecipe() {
     const name = document.getElementById('itemName').value.trim();
     const image = document.getElementById('itemImage').value.trim();
+    let price = parseInt(document.getElementById('itemPrice').value) || 0; // ★ 金額を取得
     let weight = parseFloat(document.getElementById('itemWeight').value) || 0;
     const unit = document.getElementById('itemWeightUnit').value;
 
@@ -655,7 +671,7 @@
       }
     }
 
-    const newRecipe = { name, image, weight: weight, materials: usedMaterials, tags: selectedTags };
+    const newRecipe = { name, image, price: price, weight: weight, materials: usedMaterials, tags: selectedTags };
 
     if (editRecipeIndex !== null) {
       recipes[editRecipeIndex] = newRecipe;
@@ -674,8 +690,9 @@
 
     document.getElementById('itemName').value = recipe.name;
     document.getElementById('itemImage').value = recipe.image || '';
+    document.getElementById('itemPrice').value = recipe.price || 0; // ★ 金額をセット
     document.getElementById('itemWeight').value = recipe.weight;
-    document.getElementById('itemWeightUnit').value = 'kg'; // DBの中はkgなので固定
+    document.getElementById('itemWeightUnit').value = 'kg'; 
 
     document.querySelectorAll('.recipe-tag-checkbox').forEach(cb => {
       cb.checked = recipe.tags && recipe.tags.includes(cb.value);
@@ -839,11 +856,13 @@
         });
       }
 
+      // ★ レシピ帳に金額を表示
       list.innerHTML += `
         <div class="item-card">
           <img src="${imgUrl}" class="item-image" alt="画像">
           <div class="item-details">
             <h3>${recipe.name}</h3><div style="margin-bottom:10px;">${tagsHtml}</div>
+            <div class="info-text">💰 <strong>販売価格:</strong> $${(recipe.price || 0).toLocaleString()}</div>
             <div class="info-text">📦 <strong>完成品の重さ:</strong> ${formatWeight(recipe.weight)}</div>
             <div class="info-text">🍳 <strong>必要な食材:</strong> (食材の総重量: ${formatWeight(totalMatWeight)})</div>
             <ul class="recipe-mats">${matHtml || '<li>なし</li>'}</ul>
@@ -867,10 +886,13 @@
     targetRecipes.forEach(recipe => {
       const realIndex = recipes.indexOf(recipe);
       const imgUrl = recipe.image ? recipe.image : 'https://via.placeholder.com/90?text=No+Img';
+      
+      // ★ オーダーボタンに金額を表示
       container.innerHTML += `
         <div class="calc-menu-btn" onclick="addToCart(${realIndex})">
           <img src="${imgUrl}" alt="画像">
           <div class="calc-menu-title">${recipe.name}</div>
+          <div class="calc-menu-weight" style="color:var(--mustard-dark); font-weight:800; margin-bottom:3px;">💰 $${(recipe.price || 0).toLocaleString()}</div>
           <div class="calc-menu-weight">📦 重さ: ${formatWeight(recipe.weight)}</div>
         </div>
       `;
@@ -915,19 +937,28 @@
   function renderCart() {
     const cartList = document.getElementById('cartList');
     const totalWeightEl = document.getElementById('cartTotalWeight');
+    const totalPriceEl = document.getElementById('cartTotalPrice');
     const totalMaterialsEl = document.getElementById('cartTotalMaterials');
 
     cartList.innerHTML = '';
-    let totalWeight = 0; let materialTotals = {};
+    let totalWeight = 0; 
+    let totalPrice = 0; // ★ 合計金額用変数
+    let materialTotals = {};
 
     if (cart.length === 0) {
       cartList.innerHTML = '<li style="color:#888; text-align:center; font-weight:normal; border:none; box-shadow:none;">左からメニューをタップして追加</li>';
-      totalWeightEl.innerText = '0g'; totalMaterialsEl.innerHTML = '<li style="color:#888; font-weight:normal;">なし</li>'; return;
+      totalWeightEl.innerText = '0g'; 
+      totalPriceEl.innerText = '$0'; // ★ 0リセット
+      totalMaterialsEl.innerHTML = '<li style="color:#888; font-weight:normal;">なし</li>'; 
+      return;
     }
 
     cart.forEach((item, index) => {
       const itemTotalWeight = (item.recipe.weight * item.qty);
+      const itemTotalPrice = (item.recipe.price || 0) * item.qty; // ★ アイテムの合計金額
+      
       totalWeight += itemTotalWeight;
+      totalPrice += itemTotalPrice; // ★ 全体の合計金額に加算
       
       cartList.innerHTML += `
         <li>
@@ -936,7 +967,7 @@
             <button class="btn-red" style="padding: 5px 10px; font-size:12px; margin-left: 10px;" onclick="removeCartItem(${index})">✖ 削除</button>
           </div>
           <div class="cart-controls">
-            <span style="font-size: 14px; color:#888;">📦 重さ: ${formatWeight(itemTotalWeight)}</span>
+            <span style="font-size: 14px; color:#888; font-weight:bold;">💰 $${itemTotalPrice.toLocaleString()} / 📦 ${formatWeight(itemTotalWeight)}</span>
             <div style="display: flex; align-items: center;">
               <button class="btn-red cart-qty-btn" onclick="changeCartQty(${index}, -1)">-</button>
               <input type="number" class="cart-qty-input" value="${item.qty}" min="1" onchange="updateCartQty(${index}, this.value)">
@@ -958,6 +989,8 @@
     });
 
     totalWeightEl.innerText = formatWeight(totalWeight);
+    totalPriceEl.innerText = '$' + totalPrice.toLocaleString(); // ★ 合計金額を表示
+    
     totalMaterialsEl.innerHTML = '';
     let totalMatWeight = 0;
     
