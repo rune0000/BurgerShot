@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>FiveM 飲食店レシピ・素材管理 (完全版)</title>
+<title>FiveM 飲食店レシピ・素材管理 (究極版)</title>
 <!-- Firebaseの読み込み -->
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
@@ -57,12 +57,27 @@
   }
   .room-change-btn:hover { background: #FFEFEF; transform: translateY(-2px); box-shadow: 0 2px 0 var(--ketchup-dark) !important;}
 
-  .container { max-width: 1050px; margin: auto; padding: 0 15px;}
+  /* ★ 全体レイアウト（左サイドバー対応） */
+  .app-layout { 
+    max-width: 1300px; margin: auto; padding: 0 15px; 
+    display: flex; gap: 20px; align-items: flex-start;
+  }
+  .sidebar { 
+    width: 250px; background: white; border: 4px solid #E0E0E0; 
+    border-radius: 15px; padding: 20px; box-sizing: border-box; flex-shrink: 0;
+    box-shadow: 0 8px 15px rgba(0,0,0,0.05);
+  }
+  .main-content { flex: 1; min-width: 0; }
+  
+  @media (max-width: 850px) {
+    .app-layout { flex-direction: column; }
+    .sidebar { width: 100%; border-bottom: 4px solid var(--mustard-yellow); }
+  }
   
   .tab-container { display: flex; border-bottom: 6px solid var(--mustard-yellow); gap: 5px; flex-wrap: wrap; margin-bottom: 0;}
   .tab-btn { 
     background: #FFF; border: 3px solid #E0E0E0; border-bottom: none;
-    padding: 14px 18px; font-size: 16px; cursor: pointer; border-radius: 15px 15px 0 0; 
+    padding: 12px 15px; font-size: 15px; cursor: pointer; border-radius: 15px 15px 0 0; 
     margin-bottom: 0px; color: #888; outline: none; transition: 0.2s; font-weight: 800;
   }
   .tab-btn:hover { background: var(--bun-color); color: var(--meat-brown);}
@@ -79,6 +94,7 @@
   .tab-content.active { display: block; }
 
   h2 { margin-top: 0; border-bottom: 3px dashed var(--bun-dark); padding-bottom: 10px; font-size: 22px; color: var(--ketchup-red); font-weight: 800;}
+  h3 { color: var(--ketchup-red); margin-top: 0; }
   .form-group { margin-bottom: 18px; }
   label { display: block; font-weight: 800; margin-bottom: 8px; font-size: 15px; color: var(--meat-brown);}
   
@@ -122,17 +138,27 @@
   .tag-checkbox-label:hover { border-color: var(--mustard-yellow); background: var(--bun-color);}
   .tag-checkbox-label input { margin-right: 8px; cursor: pointer; transform: scale(1.2);}
 
-  .item-card { border: 3px solid #EEEEEE; padding: 20px; border-radius: 15px; margin-bottom: 20px; display: flex; gap: 20px; background: #FFF; transition: 0.2s; box-shadow: 0 4px 6px rgba(0,0,0,0.05);}
-  .item-card:hover { border-color: var(--mustard-yellow); transform: translateY(-3px); box-shadow: 0 8px 15px rgba(255, 202, 40, 0.2);}
-  .item-image { width: 120px; height: 120px; object-fit: cover; border-radius: 12px; border: 3px solid #EEEEEE; background: #fafafa; }
-  .item-details { flex: 1; }
-  .item-details h3 { margin: 0 0 10px 0; font-size: 24px; color: var(--ketchup-red); font-weight: 800; border-bottom: none;}
-  .info-text { font-size: 15px; color: var(--meat-brown); margin-bottom: 6px; font-weight: 700;}
-  .recipe-mats { margin: 8px 0 15px 0; padding-left: 20px; font-size: 15px; color: var(--meat-brown); font-weight: 700;}
-  .sub-info { font-size: 13px; color: #888; font-weight: 400;}
+  /* ★ レシピ帳：横3列のグリッドレイアウトに変更 */
+  #recipesList { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+  @media (max-width: 900px) { #recipesList { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 600px) { #recipesList { grid-template-columns: 1fr; } }
 
-  /* 作成画面(カート)用 - 5列 */
-  .calc-menu-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; }
+  /* レシピカードのデザイン（縦並びの中央揃え） */
+  .item-card { 
+    border: 3px solid #EEEEEE; padding: 20px; border-radius: 15px; margin-bottom: 0; 
+    display: flex; flex-direction: column; align-items: center; background: #FFF; 
+    transition: 0.2s; box-shadow: 0 4px 6px rgba(0,0,0,0.05); text-align: center;
+  }
+  .item-card:hover { border-color: var(--mustard-yellow); transform: translateY(-3px); box-shadow: 0 8px 15px rgba(255, 202, 40, 0.2);}
+  .item-image { width: 100%; max-width: 150px; height: 150px; object-fit: cover; border-radius: 12px; border: 3px solid #EEEEEE; background: #fafafa; margin-bottom: 15px;}
+  .item-details { width: 100%; flex: 1; display: flex; flex-direction: column;}
+  .item-details h3 { margin: 0 0 10px 0; font-size: 22px; color: var(--ketchup-red); font-weight: 800; border-bottom: none;}
+  .info-text { font-size: 14px; color: var(--meat-brown); margin-bottom: 6px; font-weight: 700; text-align: left;}
+  .recipe-mats { margin: 8px 0 15px 0; padding-left: 20px; font-size: 14px; color: var(--meat-brown); font-weight: 700; text-align: left;}
+  .item-actions { margin-top: auto; display: flex; gap: 10px; width: 100%; }
+
+  /* 作成画面(カート)用 */
+  .calc-menu-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
   .calc-menu-btn { border: 3px solid #EEEEEE; padding: 10px; border-radius: 12px; text-align: center; cursor: pointer; background: #fff; transition: 0.2s; user-select: none; box-shadow: 0 4px 0 #EEEEEE; display: flex; flex-direction: column; align-items: center; justify-content: flex-start;}
   .calc-menu-btn:hover { border-color: var(--ketchup-red); background: #FFF5F5; transform: translateY(2px); box-shadow: 0 2px 0 var(--ketchup-red); }
   .calc-menu-btn:active { transform: translateY(4px); box-shadow: 0 0 0 transparent; }
@@ -140,8 +166,8 @@
   .calc-menu-title { font-size: 13px; font-weight: 800; line-height: 1.3; margin-bottom: 5px; color: var(--meat-brown); word-break: break-word;}
   .calc-menu-weight { font-size: 11px; color: #888; font-weight: 700; margin-top: auto;}
 
-  @media (max-width: 850px) { .calc-menu-grid { grid-template-columns: repeat(4, 1fr); } }
-  @media (max-width: 600px) { .calc-menu-grid { grid-template-columns: repeat(3, 1fr); } }
+  @media (max-width: 1000px) { .calc-menu-grid { grid-template-columns: repeat(3, 1fr); } }
+  @media (max-width: 600px) { .calc-menu-grid { grid-template-columns: repeat(2, 1fr); } }
 
   .cart-list { list-style: none; padding: 0; margin: 0 0 15px 0; max-height: 400px; overflow-y: auto; }
   .cart-list li { display: flex; flex-direction: column; gap: 8px; padding: 15px; border-bottom: none; background: #fff; border: 3px solid #EEE; border-radius: 12px; margin-bottom: 10px; box-shadow: 0 4px 0 #EEE; }
@@ -149,7 +175,6 @@
   .cart-controls { display: flex; justify-content: space-between; align-items: center; width: 100%; margin-top: 5px;}
   .cart-qty-btn { padding: 5px 15px; font-size: 18px; border-radius: 8px; font-weight: 900;}
   .cart-qty-input { width: 65px !important; text-align: center; font-size: 18px !important; font-weight: 900 !important; padding: 6px !important; margin: 0 5px; border: 3px solid #E0E0E0 !important; border-radius: 8px !important; }
-  .cart-qty-input:focus { border-color: var(--mustard-yellow) !important; }
 
   #syncStatus { text-align: center; padding: 10px; font-weight: 800; font-size: 15px; color: var(--lettuce-dark); background: #DCEDC8; border: 3px solid var(--lettuce-green); border-radius: 12px; margin-bottom: 20px; display: none; box-shadow: 0 4px 0 var(--lettuce-green);}
 
@@ -170,10 +195,7 @@
 <div id="roomModal" class="modal-overlay">
   <div class="modal-content">
     <h2>🚪 お店のルームに入室</h2>
-    
     <div style="background: #FAFAFA; border: 3px solid #EEE; padding: 20px; border-radius: 15px; margin-bottom: 20px; text-align: left;">
-      
-      <!-- 履歴から選ぶ -->
       <div class="form-group">
         <label>🕰️ 最近使ったルームの履歴</label>
         <div style="display: flex; gap: 8px; align-items: center;">
@@ -182,18 +204,17 @@
           <button class="btn-red" style="width: auto; padding: 12px 15px; font-size: 16px; box-shadow: 0 4px 0 #424242;" onclick="deleteHistory()" title="履歴から削除">🗑️</button>
         </div>
       </div>
-      
       <div style="text-align: center; color: #888; font-weight: bold; margin-bottom: 15px;">または</div>
-
-      <!-- 新しいルームを作る / 入力して入室する -->
+      <div class="form-group" style="margin-bottom: 15px;">
+        <label>🔑 ルームID (6桁の数字や英字)</label>
+        <input type="text" id="roomIdInput" placeholder="例: 123456" style="font-size: 18px; padding: 12px; text-align: center;">
+      </div>
       <div class="form-group" style="margin-bottom: 0;">
-        <label>✏️ 新しいルーム名を手入力</label>
-        <input type="text" id="roomInput" placeholder="例: バーガーショップ本店" style="font-size: 18px; padding: 12px; text-align: center;" onkeydown="if(event.key==='Enter') joinRoom()">
-        <div style="font-size: 12px; color: #888; margin-top: 8px; text-align: center;">※新しい名前を入力して入室すると自動的に作成されます。</div>
+        <label>📛 ルームの名前 (店舗名など)</label>
+        <input type="text" id="roomNameInput" placeholder="例: バーガーショップ" style="font-size: 18px; padding: 12px; text-align: center;" onkeydown="if(event.key==='Enter') joinRoom()">
+        <div style="font-size: 12px; color: #888; margin-top: 8px; text-align: center;">※新しいIDと名前を入力すると自動的に作成されます。</div>
       </div>
     </div>
-
-    <!-- 入室ボタン -->
     <div style="display: flex; gap: 10px;">
       <button id="modalCancelBtn" class="btn-red" style="padding: 15px 20px; font-size: 16px; background: #9E9E9E; box-shadow: 0 6px 0 #616161; display: none;" onclick="document.getElementById('roomModal').style.display='none'">閉じる</button>
       <button class="btn-blue" style="flex: 1; background: var(--mustard-yellow); color: var(--meat-brown); box-shadow: 0 6px 0 var(--mustard-dark); font-size: 18px; padding: 15px;" onclick="joinRoom()">✨ 決定 / 入室する</button>
@@ -209,215 +230,321 @@
   <h1>🍔 FiveM 飲食店 管理システム 🍟</h1>
 </div>
 
-<div class="container" id="mainContainer" style="display:none;">
-  <div id="syncStatus">✅ クラウドデータベースと同期中...</div>
+<!-- ★ 新レイアウト（サイドバー + メインエリア） -->
+<div class="app-layout" id="mainContainer" style="display:none;">
 
-  <!-- タブボタン -->
-  <div class="tab-container">
-    <button id="btn-calc" class="tab-btn active" onclick="switchTab('tab-calc', this)">🛒 オーダー作成・計算</button>
-    <button id="btn-recipes" class="tab-btn" onclick="switchTab('tab-recipes', this)">📖 レシピ帳を見る</button>
-    <button id="btn-create" class="tab-btn" onclick="resetRecipeForm(); switchTab('tab-create', this)">🍔 新メニュー開発</button>
-    <button id="btn-materials" class="tab-btn" onclick="switchTab('tab-materials', this)">⚙️ 食材・タグ管理</button>
-  </div>
-
-  <!-- 【画面1】 🛒 まとめて作成(計算) -->
-  <div id="tab-calc" class="tab-content active">
-    <div class="flex-row">
-      <div class="flex-col" style="flex: 2.5;">
-        <h2>🍔 オーダーするメニューをタップ！</h2>
-        <div class="filter-bar">
-          <span>🏷️ カテゴリー：</span>
-          <select id="calcFilterTag" onchange="renderCalcMenu()"><option value="">すべてのメニュー</option></select>
-        </div>
-        <div id="calcMenuList" class="calc-menu-grid"></div>
-      </div>
-      <div class="flex-col" style="flex: 1.5; background: var(--bg-cream); padding: 25px; border-radius: 15px; border: 4px solid #E0E0E0;">
-        <h2>📋 現在のオーダーシート</h2>
-        <ul id="cartList" class="cart-list"></ul>
-        
-        <!-- ★ 金額と重量の合計パネル -->
-        <div style="display: flex; gap: 10px; margin-bottom: 15px;">
-          <div style="flex: 1; background: white; padding: 15px; border-radius: 12px; border: 3px solid var(--mustard-yellow); text-align: center;">
-            <div style="font-size: 15px; color: var(--mustard-dark); font-weight: 800;">💰 合計金額</div>
-            <div style="font-size: 30px; font-weight: 800; color: var(--mustard-dark);" id="cartTotalPrice">$0</div>
-          </div>
-          <div style="flex: 1; background: white; padding: 15px; border-radius: 12px; border: 3px solid var(--ketchup-red); text-align: center;">
-            <div style="font-size: 15px; color: var(--ketchup-dark); font-weight: 800;">📦 料理の重量</div>
-            <div style="font-size: 30px; font-weight: 800; color: var(--ketchup-red);" id="cartTotalWeight">0g</div>
-          </div>
-        </div>
-
-        <div style="border-top: 3px dashed #CCC; padding-top: 15px;">
-          <strong style="font-size: 16px; color: var(--meat-brown);">🍳 倉庫から出す食材リスト:</strong>
-          <ul id="cartTotalMaterials" class="recipe-mats" style="margin-top: 10px;"></ul>
-        </div>
-        <button class="btn-red" style="width: 100%; margin-top: 15px; font-size:15px; padding: 12px; background: #616161;" onclick="clearCart()">🗑️ オーダーをすべて取り消す</button>
-      </div>
+  <!-- ★ 左パネル：スタッフ設定とオンライン状況 -->
+  <div class="sidebar">
+    <h3 style="border-bottom: 3px dashed #EEE; padding-bottom: 10px; margin-bottom: 15px;">🧑‍🍳 スタッフ設定</h3>
+    <div class="form-group">
+      <!-- ★ プルダウンに変更 -->
+      <select id="myStaffSelect" style="font-size: 14px; padding: 10px;">
+        <option value="">-- スタッフを選択 --</option>
+      </select>
     </div>
-  </div>
-
-  <!-- 【画面2】 登録済みメニュー一覧 -->
-  <div id="tab-recipes" class="tab-content">
-    <h2>📖 お店のレシピ帳</h2>
-    <div class="filter-bar">
-      <span>🏷️ カテゴリーで絞り込む：</span>
-      <select id="filterTag" onchange="renderRecipes()"><option value="">すべてのメニュー</option></select>
+    <div style="display: flex; gap: 5px;">
+      <button class="btn-blue" style="flex:1; background: var(--mustard-yellow); color: var(--meat-brown); box-shadow: 0 4px 0 var(--mustard-dark); font-size: 13px; padding: 10px;" onclick="setMyName()">出勤</button>
+      <button class="btn-red" style="flex:1; background: #9E9E9E; box-shadow: 0 4px 0 #616161; font-size: 13px; padding: 10px;" onclick="clockOut()">退勤</button>
     </div>
-    <div id="recipesList"></div>
-  </div>
-
-  <!-- 【画面3】 メニュー(完成品)の登録・編集 -->
-  <div id="tab-create" class="tab-content">
-    <h2 id="createTabTitle">🍔 新しいメニューを開発して登録</h2>
-    <div class="form-group"><label>メニュー名</label><input type="text" id="itemName" placeholder="例: ダブルチーズバーガー"></div>
-    <div class="form-group"><label>カテゴリー・タグ (複数選択可)</label><div id="recipeTagsContainer" style="margin-top: 5px;"></div></div>
-    <div class="form-group"><label>画像URL</label><input type="text" id="itemImage" placeholder="Discordの画像リンクなどを貼り付け"></div>
     
-    <!-- ★ 販売価格の入力欄 -->
-    <div class="form-group">
-      <label>販売価格 ($)</label>
-      <input type="number" id="itemPrice" placeholder="例: 500">
-    </div>
-
-    <!-- 単位選択（g/kg）メニュー登録用 -->
-    <div class="form-group">
-      <label>完成品の重さ</label>
-      <div style="display: flex; gap: 10px;">
-        <input type="number" step="0.001" id="itemWeight" placeholder="例: 1.5 (kg) または 1500 (g)">
-        <select id="itemWeightUnit" style="width: 100px;">
-          <option value="kg">kg</option>
-          <option value="g">g (グラム)</option>
-        </select>
-      </div>
-      <div style="font-size: 12px; color: #888; margin-top: 8px;">※ g(グラム)を選んだ場合、システム内では自動的にkgに変換されて保存されます。</div>
-    </div>
-
-    <div class="form-group"><label>必要な食材 (プルダウンで選択)</label>
-      <div id="recipeMaterialsContainer"></div>
-      <button type="button" class="btn-green" onclick="addRecipeMaterialRow()">+ 食材の入力欄を追加</button>
-    </div>
-    <button id="saveRecipeBtn" class="btn-blue" onclick="saveRecipe()">✨ メニューを保存 (ルームに共有)</button>
+    <h3 style="border-bottom: 3px dashed #EEE; padding-bottom: 10px; margin-top: 30px; margin-bottom: 15px;">🟢 オンライン状況</h3>
+    <ul id="presenceList" style="list-style:none; padding:0; margin:0;">
+      <!-- オンラインのスタッフ一覧が入る -->
+    </ul>
   </div>
 
-  <!-- 【画面4】 素材・タグの設定 + データバックアップ -->
-  <div id="tab-materials" class="tab-content">
-    <div class="flex-row" style="margin-bottom: 30px; border-bottom: 3px dashed #CCC; padding-bottom: 30px;">
-      <div class="flex-col">
-        <h2>🍅 新しい食材を仕入れリストに登録</h2>
-        <div class="form-group"><label>食材名</label><input type="text" id="matName" placeholder="例: パティ、バンズ、トマト"></div>
-        
-        <!-- 単位選択（g/kg）食材登録用 -->
-        <div class="form-group">
-          <label>食材1個の重さ</label>
-          <div style="display: flex; gap: 10px;">
-            <input type="number" step="0.001" id="matWeight" placeholder="例: 0.1 (kg) または 100 (g)">
-            <select id="matWeightUnit" style="width: 100px;">
-              <option value="kg">kg</option>
-              <option value="g">g (グラム)</option>
+  <!-- メインコンテンツ（右側） -->
+  <div class="main-content">
+    <div id="syncStatus">✅ クラウドデータベースと同期中...</div>
+
+    <!-- タブボタン -->
+    <div class="tab-container">
+      <button class="tab-btn active" data-tab="tab-calc" onclick="switchTab('tab-calc')">🛒 オーダー作成</button>
+      <button class="tab-btn" data-tab="tab-logs" onclick="switchTab('tab-logs')">📜 取引ログ</button>
+      <button class="tab-btn" data-tab="tab-recipes" onclick="switchTab('tab-recipes')">📖 レシピ帳</button>
+      <button class="tab-btn" data-tab="tab-create" onclick="resetRecipeForm(); switchTab('tab-create')">🍔 新メニュー</button>
+      <button class="tab-btn" data-tab="tab-materials" onclick="switchTab('tab-materials')">⚙️ 食材・設定</button>
+    </div>
+
+    <!-- 【画面1】 🛒 まとめて作成(計算) -->
+    <div id="tab-calc" class="tab-content active">
+      <div class="flex-row">
+        <div class="flex-col" style="flex: 2.5;">
+          <h2>🍔 オーダーするメニューをタップ！</h2>
+          <div class="filter-bar">
+            <span>🏷️ カテゴリー：</span>
+            <select id="calcFilterTag" onchange="renderCalcMenu()"><option value="">すべてのメニュー</option></select>
+          </div>
+          <div id="calcMenuList" class="calc-menu-grid"></div>
+        </div>
+        <div class="flex-col" style="flex: 1.5; background: var(--bg-cream); padding: 25px; border-radius: 15px; border: 4px solid #E0E0E0;">
+          <h2>📋 現在のオーダーシート</h2>
+          <ul id="cartList" class="cart-list"></ul>
+          
+          <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+            <div style="flex: 1; background: white; padding: 15px; border-radius: 12px; border: 3px solid var(--mustard-yellow); text-align: center;">
+              <div style="font-size: 15px; color: var(--mustard-dark); font-weight: 800;">💰 合計金額</div>
+              <div style="font-size: 26px; font-weight: 800; color: var(--mustard-dark);" id="cartTotalPrice">$0</div>
+            </div>
+            <div style="flex: 1; background: white; padding: 15px; border-radius: 12px; border: 3px solid var(--ketchup-red); text-align: center;">
+              <div style="font-size: 15px; color: var(--ketchup-dark); font-weight: 800;">📦 料理の重量</div>
+              <div style="font-size: 26px; font-weight: 800; color: var(--ketchup-red);" id="cartTotalWeight">0g</div>
+            </div>
+          </div>
+
+          <div style="border-top: 3px dashed #CCC; padding-top: 15px;">
+            <strong style="font-size: 16px; color: var(--meat-brown);">🍳 倉庫から出す食材リスト:</strong>
+            <ul id="cartTotalMaterials" class="recipe-mats" style="margin-top: 10px;"></ul>
+          </div>
+          
+          <div style="display: flex; gap: 10px; margin-top: 15px;">
+            <button class="btn-blue" style="flex: 2; background: #4CAF50; box-shadow: 0 6px 0 #2E7D32; font-size: 15px; padding: 12px;" onclick="checkoutCart()">💰 お会計確定 (ログに残す)</button>
+            <button class="btn-red" style="flex: 1; font-size: 14px; padding: 12px; background: #616161;" onclick="clearCart()">🗑️ 取り消し</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 【画面2】 取引ログ -->
+    <div id="tab-logs" class="tab-content">
+      <h2>📜 取引ログ (販売・買取記録)</h2>
+      
+      <div style="background: #FAFAFA; padding: 20px; border-radius: 15px; border: 3px solid #EEE; margin-bottom: 25px;">
+        <h3 style="margin-bottom: 15px; color: var(--meat-brown);">✏️ 手動でログを追加する</h3>
+        <div class="flex-row" style="gap: 15px;">
+          <div class="form-group" style="flex: 1;">
+            <label>取引タイプ</label>
+            <select id="logType">
+              <option value="🟢 販売 (売上)">🟢 販売 (売上)</option>
+              <option value="🔴 買取 (支出)">🔴 買取・仕入れ (支出)</option>
             </select>
           </div>
-          <div style="font-size: 12px; color: #888; margin-top: 8px;">※ g(グラム)を選んだ場合、システム内では自動的にkgに計算されて保存されます。</div>
-        </div>
-
-        <button class="btn-blue" onclick="saveMaterial()">食材を登録 (ルームに共有)</button>
-      </div>
-      <div class="flex-col"><h2>📋 登録済みの食材一覧</h2><ul class="mat-list" id="materialsList"></ul></div>
-    </div>
-    <div class="flex-row">
-      <div class="flex-col">
-        <h2>🏷️ 新しいカテゴリー(タグ)を作る</h2>
-        <div class="form-group"><label>カテゴリー名</label><input type="text" id="tagName" placeholder="例: ドリンク、セット、期間限定"></div>
-        <button class="btn-blue" style="background:var(--mustard-dark); box-shadow: 0 6px 0 #E65100;" onclick="saveTag()">タグを登録 (ルームに共有)</button>
-      </div>
-      <div class="flex-col"><h2>📋 登録済みのカテゴリー</h2><ul class="mat-list" id="tagsList"></ul></div>
-    </div>
-
-    <!-- 💾 データ管理セクション（エクスポート/インポート） -->
-    <div class="flex-row" style="margin-top: 30px; border-top: 3px dashed #CCC; padding-top: 30px;">
-      <div class="flex-col" style="flex: 100%;">
-        <h2>💾 データ管理（バックアップと復元）</h2>
-        <div style="background: white; padding: 25px; border-radius: 15px; border: 3px solid #EEE; display: flex; gap: 30px; align-items: center; flex-wrap: wrap;">
-          <div style="flex: 1; min-width: 250px;">
-            <p style="margin-top: 0; font-weight: 700; color: var(--meat-brown);">現在のルームの全データを、JSONファイルとしてパソコンにダウンロードします。</p>
-            <button class="btn-blue" style="width: 100%; background: #2196F3; box-shadow: 0 6px 0 #1565C0;" onclick="exportData()">📥 データをダウンロード保存</button>
-          </div>
-          <div style="flex: 1; min-width: 250px;">
-            <p style="margin-top: 0; font-weight: 700; color: var(--meat-brown);">保存したJSONファイルを読み込んで、現在のルームのデータを上書き復元します。</p>
-            <input type="file" id="importFile" accept=".json" style="display: none;" onchange="importData(event)">
-            <button class="btn-blue" style="width: 100%; background: #4CAF50; box-shadow: 0 6px 0 #2E7D32;" onclick="document.getElementById('importFile').click()">📤 データをアップロードして復元</button>
+          <div class="form-group" style="flex: 1;">
+            <label>担当スタッフ</label>
+            <div id="logStaffNameDisplay" style="padding: 12px; background: #E0E0E0; border-radius: 10px; font-weight:800; color: #555;">未設定 (左パネルで設定)</div>
           </div>
         </div>
+        <div class="form-group"><label>内容 (何を何個)</label><input type="text" id="logDetails" placeholder="例: トマト×10, レタス×5"></div>
+        <div class="form-group"><label>合計金額 ($)</label><input type="number" id="logPrice" placeholder="例: 1000"></div>
+        <button class="btn-blue" style="background: #2196F3; box-shadow: 0 6px 0 #1565C0;" onclick="addManualLog()">📝 ログを記録する</button>
+      </div>
+
+      <h3 style="color: var(--meat-brown); border-bottom: 3px dashed #EEE; padding-bottom: 10px;">📋 過去の記録 (新しい順)</h3>
+      <ul id="logsList" class="mat-list" style="max-height: 500px; padding: 10px; background: #FAFAFA;">
+        <!-- ログ一覧が入ります -->
+      </ul>
+    </div>
+
+    <!-- 【画面3】 ★ レシピ帳 (3列グリッド) -->
+    <div id="tab-recipes" class="tab-content">
+      <h2>📖 お店のレシピ帳</h2>
+      <div class="filter-bar">
+        <span>🏷️ カテゴリーで絞り込む：</span>
+        <select id="filterTag" onchange="renderRecipes()"><option value="">すべてのメニュー</option></select>
+      </div>
+      <div id="recipesList"></div>
+    </div>
+
+    <!-- 【画面4】 メニュー(完成品)の登録・編集 -->
+    <div id="tab-create" class="tab-content">
+      <h2 id="createTabTitle">🍔 新しいメニューを開発して登録</h2>
+      <div class="form-group"><label>メニュー名</label><input type="text" id="itemName" placeholder="例: ダブルチーズバーガー"></div>
+      <div class="form-group"><label>カテゴリー・タグ (複数選択可)</label><div id="recipeTagsContainer" style="margin-top: 5px;"></div></div>
+      <div class="form-group"><label>画像URL</label><input type="text" id="itemImage" placeholder="Discordの画像リンクなどを貼り付け"></div>
+      <div class="form-group"><label>販売価格 ($)</label><input type="number" id="itemPrice" placeholder="例: 500"></div>
+      <div class="form-group">
+        <label>完成品の重さ</label>
+        <div style="display: flex; gap: 10px;">
+          <input type="number" step="0.001" id="itemWeight" placeholder="例: 1.5 (kg) または 1500 (g)">
+          <select id="itemWeightUnit" style="width: 100px;"><option value="kg">kg</option><option value="g">g (グラム)</option></select>
+        </div>
+      </div>
+      <div class="form-group"><label>必要な食材 (プルダウンで選択)</label>
+        <div id="recipeMaterialsContainer"></div>
+        <button type="button" class="btn-green" onclick="addRecipeMaterialRow()">+ 食材の入力欄を追加</button>
+      </div>
+      <button id="saveRecipeBtn" class="btn-blue" onclick="saveRecipe()">✨ メニューを保存 (ルームに共有)</button>
+    </div>
+
+    <!-- 【画面5】 素材・タグ・システム設定 -->
+    <div id="tab-materials" class="tab-content">
+      
+      <!-- ★ スタッフ名登録セクションを追加 -->
+      <div class="flex-row" style="margin-bottom: 30px; border-bottom: 3px dashed #CCC; padding-bottom: 30px;">
+        <div class="flex-col">
+          <h2>👥 新しいスタッフを登録</h2>
+          <div class="form-group"><label>スタッフ名</label><input type="text" id="staffNameInput" placeholder="例: やまだ"></div>
+          <button class="btn-blue" style="background:#9C27B0; box-shadow: 0 6px 0 #7B1FA2;" onclick="saveStaff()">スタッフを登録 (ルームに共有)</button>
+        </div>
+        <div class="flex-col"><h2>📋 登録済みのスタッフ一覧</h2><ul class="mat-list" id="staffsList"></ul></div>
+      </div>
+
+      <div class="flex-row" style="margin-bottom: 30px; border-bottom: 3px dashed #CCC; padding-bottom: 30px;">
+        <div class="flex-col">
+          <h2>🍅 新しい食材を仕入れリストに登録</h2>
+          <div class="form-group"><label>食材名</label><input type="text" id="matName" placeholder="例: パティ、バンズ、トマト"></div>
+          <div class="form-group">
+            <label>食材1個の重さ</label>
+            <div style="display: flex; gap: 10px;">
+              <input type="number" step="0.001" id="matWeight" placeholder="例: 0.1 (kg) または 100 (g)">
+              <select id="matWeightUnit" style="width: 100px;"><option value="kg">kg</option><option value="g">g (グラム)</option></select>
+            </div>
+            <div style="font-size: 12px; color: #888; margin-top: 8px;">※ g(グラム)を選んだ場合、システム内では自動的にkgに計算されて保存されます。</div>
+          </div>
+          <button class="btn-blue" onclick="saveMaterial()">食材を登録 (ルームに共有)</button>
+        </div>
+        <div class="flex-col"><h2>📋 登録済みの食材一覧</h2><ul class="mat-list" id="materialsList"></ul></div>
+      </div>
+      
+      <div class="flex-row" style="margin-bottom: 30px; border-bottom: 3px dashed #CCC; padding-bottom: 30px;">
+        <div class="flex-col">
+          <h2>🏷️ 新しいカテゴリー(タグ)を作る</h2>
+          <div class="form-group"><label>カテゴリー名</label><input type="text" id="tagName" placeholder="例: ドリンク、セット、期間限定"></div>
+          <button class="btn-blue" style="background:var(--mustard-dark); box-shadow: 0 6px 0 #E65100;" onclick="saveTag()">タグを登録 (ルームに共有)</button>
+        </div>
+        <div class="flex-col"><h2>📋 登録済みのカテゴリー</h2><ul class="mat-list" id="tagsList"></ul></div>
+      </div>
+
+      <!-- タブの並び順設定 -->
+      <div class="flex-row" style="margin-bottom: 30px; border-bottom: 3px dashed #CCC; padding-bottom: 30px;">
+        <div class="flex-col" style="flex: 100%;">
+          <h2>🔄 タブの表示順設定</h2>
+          <p style="margin-top: 0; font-weight: 700; color: var(--meat-brown);">ボタンの並び順をあなたの好みに変更できます。</p>
+          <ul id="tabOrderList" style="list-style:none; padding:0; margin:0; max-width:450px;"></ul>
+        </div>
+      </div>
+
+      <!-- Discord Webhook 設定 -->
+      <div class="flex-row" style="margin-bottom: 30px; border-bottom: 3px dashed #CCC; padding-bottom: 30px;">
+        <div class="flex-col" style="flex: 100%;">
+          <h2>🔗 Discord Webhook 設定 (通知機能)</h2>
+          <div class="form-group">
+            <label>💬 全体通知用 Webhook URL (新メニュー登録時など)</label>
+            <input type="text" id="webhookUrlInput" placeholder="https://discord.com/api/webhooks/...">
+          </div>
+          <div class="form-group">
+            <label>📜 取引ログ専用 Webhook URL</label>
+            <input type="text" id="webhookUrlLogsInput" placeholder="販売や買取の記録だけを別チャンネルに送る場合はここに入力">
+            <div style="font-size: 13px; color: #888; margin-top: 8px; font-weight:bold;">※設定すると自動でDiscordに送信されます。(空欄でオフ)</div>
+          </div>
+          <button class="btn-blue" style="background: #5865F2; box-shadow: 0 6px 0 #3F48CC;" onclick="saveWebhook()">Webhookを保存</button>
+        </div>
+      </div>
+
+      <!-- 💾 データ管理セクション -->
+      <div class="flex-row">
+        <div class="flex-col" style="flex: 100%;">
+          <h2>💾 データ管理（バックアップと復元）</h2>
+          <div style="background: white; padding: 25px; border-radius: 15px; border: 3px solid #EEE; display: flex; gap: 30px; align-items: center; flex-wrap: wrap;">
+            <div style="flex: 1; min-width: 250px;">
+              <p style="margin-top: 0; font-weight: 700; color: var(--meat-brown);">現在のルームの全データを、JSONファイルとしてダウンロードします。</p>
+              <button class="btn-blue" style="width: 100%; background: #2196F3; box-shadow: 0 6px 0 #1565C0;" onclick="exportData()">📥 データをダウンロード保存</button>
+            </div>
+            <div style="flex: 1; min-width: 250px;">
+              <p style="margin-top: 0; font-weight: 700; color: var(--meat-brown);">保存したJSONファイルを読み込んで、現在のルームデータを上書き復元します。</p>
+              <input type="file" id="importFile" accept=".json" style="display: none;" onchange="importData(event)">
+              <button class="btn-blue" style="width: 100%; background: #4CAF50; box-shadow: 0 6px 0 #2E7D32;" onclick="document.getElementById('importFile').click()">📤 データをアップロードして復元</button>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
-  </div>
-
-</div>
+  </div> <!-- main-content 終了 -->
+</div> <!-- app-layout 終了 -->
 
 <script>
   // ==========================================
-  // シンプルなルーム管理（名前のみで動作）
+  // 【安全版】ルームIDと名前の管理
   // ==========================================
-  let roomId = localStorage.getItem('fivem_current_room');
-  
-  // 過去のID/名前オブジェクトが保存されていた場合の安全な変換処理
-  if (roomId) {
-    try {
-      let parsed = JSON.parse(roomId);
-      if (typeof parsed === 'object' && parsed.name) {
-        roomId = parsed.name; 
+  let roomId = null;
+  let roomName = null;
+  let roomHistory = [];
+  let dbRef = null;
+
+  try {
+    let savedRoom = localStorage.getItem('fivem_current_room');
+    if (savedRoom) {
+      let parsed = JSON.parse(savedRoom);
+      if (typeof parsed === 'string') {
+        roomId = parsed; roomName = parsed;
       } else if (typeof parsed === 'object' && parsed.id) {
-        roomId = parsed.id;
+        roomId = parsed.id; roomName = parsed.name || parsed.id;
       }
-    } catch(e) {}
+    }
+  } catch (e) {
+    let rawStr = localStorage.getItem('fivem_current_room');
+    if(rawStr) { roomId = rawStr; roomName = rawStr; }
   }
 
-  let savedHistory = localStorage.getItem('fivem_room_history');
-  let roomHistory = [];
-  if (savedHistory) {
-    try {
+  try {
+    let savedHistory = localStorage.getItem('fivem_room_history');
+    if (savedHistory) {
       let parsed = JSON.parse(savedHistory);
       if(Array.isArray(parsed)) {
         roomHistory = parsed.map(item => {
-          if (typeof item === 'string') return item;
-          if (typeof item === 'object' && item.name) return item.name;
-          if (typeof item === 'object' && item.id) return item.id;
+          if (!item) return null;
+          if (typeof item === 'string') return { id: item, name: item };
+          if (typeof item === 'object' && item.id) return { id: item.id, name: item.name || item.id };
           return null;
         }).filter(Boolean);
       }
-    } catch (e) {
-      roomHistory = [];
-      localStorage.removeItem('fivem_room_history'); 
     }
+  } catch (e) {
+    roomHistory = [];
+    localStorage.removeItem('fivem_room_history'); 
   }
 
-  let dbRef = null;
+  // ★ タブの並び順の管理
+  const defaultTabOrder = ['tab-calc', 'tab-logs', 'tab-recipes', 'tab-create', 'tab-materials'];
+  let currentTabOrder = JSON.parse(localStorage.getItem('fivem_tab_order')) || defaultTabOrder;
 
-  // モーダルを表示
+  function applyTabOrder() {
+    const container = document.querySelector('.tab-container');
+    currentTabOrder.forEach(tabId => {
+      const btn = document.querySelector(`.tab-btn[data-tab="${tabId}"]`);
+      if(btn) container.appendChild(btn);
+    });
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    applyTabOrder();
+    if (!roomId) {
+      showRoomModal();
+    } else {
+      document.getElementById('roomModal').style.display = 'none';
+      document.getElementById('mainContainer').style.display = 'flex';
+      document.getElementById('roomBadge').style.display = 'inline-block';
+      document.getElementById('storeNameDisplay').innerText = `${roomName} (ID: ${roomId})`;
+      initFirebase();
+    }
+  });
+
   function showRoomModal() {
     document.getElementById('roomModal').style.display = 'flex';
     renderRoomHistory();
     if(roomId) {
       document.getElementById('modalCancelBtn').style.display = 'inline-block';
-      document.getElementById('roomInput').value = roomId;
+      document.getElementById('roomIdInput').value = roomId;
+      document.getElementById('roomNameInput').value = roomName;
     } else {
       document.getElementById('modalCancelBtn').style.display = 'none';
       if(roomHistory.length > 0) {
-        document.getElementById('roomInput').value = roomHistory[0];
-        document.getElementById('historySelect').value = roomHistory[0];
+        document.getElementById('roomIdInput').value = roomHistory[0].id;
+        document.getElementById('roomNameInput').value = roomHistory[0].name;
+        document.getElementById('historySelect').value = JSON.stringify(roomHistory[0]);
       }
     }
   }
 
-  // 履歴をプルダウンに描画
   function renderRoomHistory() {
     const select = document.getElementById('historySelect');
     let html = '<option value="">-- 履歴から選択 --</option>';
     if(roomHistory.length === 0) {
       html = '<option value="">履歴はありません</option>';
     } else {
-      roomHistory.forEach(name => {
-        let val = name.replace(/"/g, '&quot;');
-        html += `<option value="${val}">${name}</option>`;
+      roomHistory.forEach(h => {
+        let val = JSON.stringify(h).replace(/"/g, '&quot;');
+        html += `<option value="${val}">${h.name} (ID: ${h.id})</option>`;
       });
     }
     select.innerHTML = html;
@@ -425,69 +552,71 @@
 
   function selectHistory(val) {
     if (!val) {
-      document.getElementById('roomInput').value = '';
+      document.getElementById('roomIdInput').value = '';
+      document.getElementById('roomNameInput').value = '';
       return;
     }
-    document.getElementById('roomInput').value = val;
+    try {
+      let parsed = JSON.parse(val);
+      document.getElementById('roomIdInput').value = parsed.id;
+      document.getElementById('roomNameInput').value = parsed.name;
+    } catch(e) {}
   }
 
   function joinRoom() {
-    let input = document.getElementById('roomInput').value.trim();
-    const select = document.getElementById('historySelect').value;
+    let idInput = document.getElementById('roomIdInput').value.trim();
+    let nameInput = document.getElementById('roomNameInput').value.trim();
+    if (!idInput) return alert('ルームIDを入力してください！');
+    if (!/^[a-zA-Z0-9_-]+$/.test(idInput)) return alert('ルームIDは半角英数字で入力してください！');
+    if (!nameInput) nameInput = "名称未設定のルーム"; 
     
-    let finalRoomId = input || select;
-
-    if (!finalRoomId) return alert('ルーム名を入力するか、履歴から選んでください！');
-    if (/[\.\#\$\[\]]/.test(finalRoomId)) return alert('ルーム名に次の文字は使えません: . # $ [ ]');
-    
-    roomHistory = roomHistory.filter(name => name !== finalRoomId);
-    roomHistory.unshift(finalRoomId);
+    let newRoom = { id: idInput, name: nameInput };
+    roomHistory = roomHistory.filter(h => h.id !== idInput);
+    roomHistory.unshift(newRoom);
     if(roomHistory.length > 20) roomHistory.pop();
     localStorage.setItem('fivem_room_history', JSON.stringify(roomHistory));
-    
-    localStorage.setItem('fivem_current_room', finalRoomId);
+    localStorage.setItem('fivem_current_room', JSON.stringify(newRoom));
     window.location.reload();
   }
 
   function deleteHistory() {
     const select = document.getElementById('historySelect').value;
     if(!select) return alert('削除する履歴を選んでください');
-    
-    if(confirm(`履歴から「${select}」を削除しますか？\n（※クラウド上のデータ自体は消えません）`)) {
-      roomHistory = roomHistory.filter(name => name !== select);
-      localStorage.setItem('fivem_room_history', JSON.stringify(roomHistory));
-      renderRoomHistory();
-      if(document.getElementById('roomInput').value === select) {
-        document.getElementById('roomInput').value = '';
+    try {
+      let parsed = JSON.parse(select);
+      if(confirm(`履歴から「${parsed.name} (ID: ${parsed.id})」を削除しますか？`)) {
+        roomHistory = roomHistory.filter(h => h.id !== parsed.id);
+        localStorage.setItem('fivem_room_history', JSON.stringify(roomHistory));
+        renderRoomHistory();
+        if(document.getElementById('roomIdInput').value === parsed.id) {
+          document.getElementById('roomIdInput').value = ''; document.getElementById('roomNameInput').value = '';
+        }
       }
-    }
+    } catch(e) {}
   }
 
   function editHistory() {
     const select = document.getElementById('historySelect').value;
     if(!select) return alert('名前を変更する履歴を選んでください');
-    
-    const newName = prompt(`新しいルーム名を入力してください。`, select);
-    if(!newName || newName === select) return;
-    if (/[\.\#\$\[\]]/.test(newName)) return alert('ルーム名に次の文字は使えません: . # $ [ ]');
-    
-    const index = roomHistory.indexOf(select);
-    if(index !== -1) {
-      roomHistory[index] = newName;
-      localStorage.setItem('fivem_room_history', JSON.stringify(roomHistory));
-      renderRoomHistory();
+    try {
+      let parsed = JSON.parse(select);
+      const newName = prompt(`「${parsed.name} (ID: ${parsed.id})」の新しいルーム名を入力してください。`, parsed.name);
+      if(!newName || newName === parsed.name) return;
       
-      if(document.getElementById('roomInput').value === select) {
-        document.getElementById('roomInput').value = newName;
+      let index = roomHistory.findIndex(h => h.id === parsed.id);
+      if(index !== -1) {
+        roomHistory[index].name = newName;
+        localStorage.setItem('fivem_room_history', JSON.stringify(roomHistory));
+        renderRoomHistory();
+        if(document.getElementById('roomIdInput').value === parsed.id) document.getElementById('roomNameInput').value = newName;
+        if (parsed.id === roomId) {
+          roomName = newName;
+          document.getElementById('storeNameDisplay').innerText = `${roomName} (ID: ${roomId})`;
+          localStorage.setItem('fivem_current_room', JSON.stringify({id: roomId, name: roomName}));
+          if(dbRef) dbRef.child('roomName').set(roomName);
+        }
       }
-      
-      if (select === roomId) {
-        roomId = newName;
-        document.getElementById('storeNameDisplay').innerText = roomId;
-        localStorage.setItem('fivem_current_room', roomId);
-        window.location.reload(); // ルーム名が変わったので入り直す
-      }
-    }
+    } catch(e) {}
   }
 
   function changeRoom() {
@@ -495,21 +624,27 @@
     window.location.reload();
   }
 
-  document.addEventListener('DOMContentLoaded', () => {
-    if (!roomId) {
-      showRoomModal();
-    } else {
-      document.getElementById('roomModal').style.display = 'none';
-      document.getElementById('mainContainer').style.display = 'block';
-      document.getElementById('roomBadge').style.display = 'inline-block';
-      document.getElementById('storeNameDisplay').innerText = roomId;
-      initFirebase();
-    }
-  });
+  // ==========================================
+  // Firebaseの設定とデータ変数
+  // ==========================================
+  let staffs = []; // ★ スタッフ一覧
+  let materials = [];
+  let recipes = [];
+  let tags = ['メイン', 'ドリンク', 'サイド', 'セット']; 
+  let logsData = [];
+  let webhookUrl = "";
+  let webhookUrlLogs = "";
+  let cart = [];
+  let editRecipeIndex = null;
 
-  // ==========================================
-  // Firebaseの設定と同期処理
-  // ==========================================
+  let myUid = localStorage.getItem('fivem_my_uid');
+  if(!myUid) {
+    myUid = 'uid_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+    localStorage.setItem('fivem_my_uid', myUid);
+  }
+  let myStaffName = localStorage.getItem('fivem_staff_name') || '';
+  let currentPresenceData = null;
+
   function initFirebase() {
     const firebaseConfig = {
       apiKey: "AIzaSyDHsSUZN3Vo2CQCSOZMuCrpDsPm3MC79Sk",
@@ -517,127 +652,339 @@
       projectId: "fivemcafe",
       storageBucket: "fivemcafe.firebasestorage.app",
       messagingSenderId: "369339671614",
-      appId: "1:369339671614:web:76e26fc77d3a6175479d6f",
-      measurementId: "G-8TSHYB31Z9"
+      appId: "1:369339671614:web:76e26fc77d3a6175479d6f"
     };
-    
-    if (!firebase.apps.length) {
-      firebase.initializeApp(firebaseConfig);
-    }
+    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
-    
     dbRef = db.ref('rooms/' + roomId);
 
     dbRef.on('value', (snapshot) => {
       document.getElementById('syncStatus').style.display = 'block';
-      
       const data = snapshot.val() || {};
       
+      if(!data.roomName) dbRef.child('roomName').set(roomName || roomId);
+      else if(data.roomName !== roomName) {
+        roomName = data.roomName;
+        document.getElementById('storeNameDisplay').innerText = `${roomName} (ID: ${roomId})`;
+        localStorage.setItem('fivem_current_room', JSON.stringify({id: roomId, name: roomName}));
+        let index = roomHistory.findIndex(h => h.id === roomId);
+        if(index !== -1) {
+          roomHistory[index].name = roomName;
+          localStorage.setItem('fivem_room_history', JSON.stringify(roomHistory));
+        }
+      }
+
+      staffs = data.staffs || []; // ★ スタッフデータの読み込み
       materials = data.materials || [];
       recipes = data.recipes || [];
       tags = data.tags || ['メイン', 'ドリンク', 'サイド', 'セット'];
+      
+      webhookUrl = (data.settings && data.settings.webhookUrl) ? data.settings.webhookUrl : "";
+      webhookUrlLogs = (data.settings && data.settings.webhookUrlLogs) ? data.settings.webhookUrlLogs : "";
+      if (document.activeElement !== document.getElementById('webhookUrlInput')) document.getElementById('webhookUrlInput').value = webhookUrl;
+      if (document.activeElement !== document.getElementById('webhookUrlLogsInput')) document.getElementById('webhookUrlLogsInput').value = webhookUrlLogs;
 
-      renderTags();
-      updateTagDropdowns();
-      renderMaterials();
-      updateMaterialDropdowns();
-      renderRecipes();
-      renderCalcMenu();
-      renderCart();
+      if (data.logs) logsData = Object.values(data.logs).sort((a, b) => a.timestamp - b.timestamp);
+      else logsData = [];
+
+      renderStaffs(); // ★ スタッフ一覧の描画
+      renderTags(); updateTagDropdowns(); renderMaterials(); updateMaterialDropdowns();
+      renderRecipes(); renderCalcMenu(); renderCart(); renderLogs(); renderTabOrderSettings();
     });
-    
+
+    setupPresence();
     if (document.getElementById('recipeMaterialsContainer').innerHTML.trim() === '') addRecipeMaterialRow();
   }
 
   // ==============================
-  // データの変数
+  // 🟢 スタッフ出退勤とオンライン時間
   // ==============================
-  let materials = [];
-  let recipes = [];
-  let tags = ['メイン', 'ドリンク', 'サイド', 'セット']; 
-  let cart = [];
-  let editRecipeIndex = null;
+  function setupPresence() {
+    if(myStaffName) {
+      document.getElementById('logStaffNameDisplay').innerText = myStaffName;
+    }
 
-  // ==============================
-  // 重さの表示を自動で綺麗にする関数（0.1kg -> 100g）
-  // ==============================
-  function formatWeight(kg) {
-    if (kg === 0) return '0g';
-    if (kg < 1) {
-      return Math.round(kg * 1000) + 'g';
-    } else {
-      return Number(kg.toFixed(3)) + 'kg';
+    const amOnline = firebase.database().ref('.info/connected');
+    const userRef = dbRef.child('presence/' + myUid);
+    
+    amOnline.on('value', snapshot => {
+      if (snapshot.val()) {
+        userRef.onDisconnect().update({ online: false, lastSeen: firebase.database.ServerValue.TIMESTAMP });
+      }
+    });
+
+    dbRef.child('presence').on('value', snapshot => {
+      currentPresenceData = snapshot.val();
+      renderPresence();
+    });
+    
+    setInterval(renderPresence, 60000); 
+  }
+
+  // ★ スタッフプルダウンの描画
+  function renderStaffs() {
+    const list = document.getElementById('staffsList');
+    list.innerHTML = '';
+    staffs.forEach((staff, index) => {
+      list.innerHTML += `<li><span>🧑‍🍳 <strong>${staff}</strong></span><button class="btn-red" onclick="deleteStaff(${index})">削除</button></li>`;
+    });
+
+    const select = document.getElementById('myStaffSelect');
+    const currentVal = myStaffName || select.value;
+    let options = '<option value="">-- スタッフを選択 --</option>';
+    staffs.forEach(staff => {
+      options += `<option value="${staff}" ${staff === currentVal ? 'selected' : ''}>${staff}</option>`;
+    });
+    select.innerHTML = options;
+  }
+
+  function saveStaff() {
+    const name = document.getElementById('staffNameInput').value.trim();
+    if (!name) return alert("スタッフ名を入力してください！");
+    if (staffs.includes(name)) return alert("そのスタッフ名はすでに登録されています！");
+    staffs.push(name);
+    syncData();
+    document.getElementById('staffNameInput').value = '';
+  }
+
+  function deleteStaff(index) {
+    if (confirm("スタッフを削除しますか？\n(※過去のログの名前は消えません)")) {
+      staffs.splice(index, 1);
+      syncData();
     }
   }
 
-  function syncData() {
-    if(!dbRef) return;
-    dbRef.set({
-      materials: materials,
-      recipes: recipes,
-      tags: tags
+  // ★ 出勤時の処理（プルダウンから取得）
+  function setMyName() {
+    const name = document.getElementById('myStaffSelect').value;
+    if(!name) return alert('プルダウンからスタッフ名を選んでください！\n（名前がない場合は「⚙️食材・設定」タブから登録してください）');
+    
+    myStaffName = name;
+    localStorage.setItem('fivem_staff_name', myStaffName);
+    document.getElementById('logStaffNameDisplay').innerText = myStaffName;
+    
+    if(dbRef) {
+      dbRef.child('presence/' + myUid).update({ 
+        name: myStaffName, online: true, loginTime: Date.now(), lastSeen: firebase.database.ServerValue.TIMESTAMP 
+      });
+    }
+    alert("出勤しました！");
+  }
+
+  function clockOut() {
+    if(!myStaffName) return alert("まだ出勤していません！");
+    if(dbRef) {
+      dbRef.child('presence/' + myUid).update({ online: false, lastSeen: firebase.database.ServerValue.TIMESTAMP });
+    }
+    alert("退勤しました。お疲れ様でした！");
+  }
+
+  function renderPresence() {
+    const list = document.getElementById('presenceList');
+    list.innerHTML = '';
+    if (!currentPresenceData) return;
+    
+    const users = Object.values(currentPresenceData).sort((a, b) => (b.online === a.online) ? 0 : b.online ? 1 : -1);
+    const now = Date.now();
+    
+    users.forEach(u => {
+      if(!u.name) return;
+      const statusIcon = u.online ? '🟢' : '⚪️';
+      const color = u.online ? 'var(--meat-brown)' : '#aaa';
+      let timeStr = '';
+      
+      if (u.online && u.loginTime) {
+        const min = Math.floor((now - u.loginTime) / 60000);
+        timeStr = `<span style="font-size:13px; color:#888; margin-left:auto;">(${min}分経過)</span>`;
+      }
+      
+      list.innerHTML += `
+        <li style="display:flex; align-items:center; margin-bottom: 12px; color: ${color}; font-weight: 800; font-size: 15px; border-bottom:1px solid #EEE; padding-bottom:5px;">
+          <span style="margin-right:8px;">${statusIcon}</span> ${u.name} ${timeStr}
+        </li>`;
     });
   }
 
   // ==============================
-  // タブ切り替え
+  // 🔄 タブの並び替え機能
   // ==============================
-  function switchTab(tabId, btnElement) {
+  function renderTabOrderSettings() {
+    const list = document.getElementById('tabOrderList');
+    list.innerHTML = '';
+    const tabNames = {
+      'tab-calc': '🛒 オーダー作成', 'tab-logs': '📜 取引ログ',
+      'tab-recipes': '📖 レシピ帳', 'tab-create': '🍔 新メニュー開発', 'tab-materials': '⚙️ 食材・設定'
+    };
+    currentTabOrder.forEach((tabId, index) => {
+      list.innerHTML += `
+        <li style="display:flex; justify-content:space-between; align-items:center; padding:12px 15px; background:#fff; border:3px solid #eee; margin-bottom:8px; border-radius:10px;">
+          <span style="font-weight:800; color:var(--meat-brown); font-size:15px;">${index + 1}. ${tabNames[tabId]}</span>
+          <div style="display:flex; gap:8px;">
+            <button class="btn-blue" style="padding:6px 14px; font-size:14px; background:#2196F3; box-shadow:0 3px 0 #1565C0;" onclick="moveTab(${index}, -1)" ${index===0?'disabled style="opacity:0.5;"':''}>▲</button>
+            <button class="btn-blue" style="padding:6px 14px; font-size:14px; background:#2196F3; box-shadow:0 3px 0 #1565C0;" onclick="moveTab(${index}, 1)" ${index===currentTabOrder.length-1?'disabled style="opacity:0.5;"':''}>▼</button>
+          </div>
+        </li>
+      `;
+    });
+  }
+
+  function moveTab(index, direction) {
+    const newIndex = index + direction;
+    if(newIndex < 0 || newIndex >= currentTabOrder.length) return;
+    const temp = currentTabOrder[index];
+    currentTabOrder[index] = currentTabOrder[newIndex];
+    currentTabOrder[newIndex] = temp;
+    localStorage.setItem('fivem_tab_order', JSON.stringify(currentTabOrder));
+    applyTabOrder(); renderTabOrderSettings();
+  }
+
+  function switchTab(tabId) {
     document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
     document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
     document.getElementById(tabId).classList.add('active');
-    btnElement.classList.add('active');
+    document.querySelector(`.tab-btn[data-tab="${tabId}"]`).classList.add('active');
+    
+    if(tabId === 'tab-logs') {
+      const list = document.getElementById('logsList');
+      list.scrollTop = list.scrollHeight;
+    }
   }
 
   // ==============================
-  // 各種保存・削除・編集処理
+  // 🔗 Discord Webhook と 📜 ログ機能
   // ==============================
+  function saveWebhook() {
+    const url = document.getElementById('webhookUrlInput').value.trim();
+    const urlLogs = document.getElementById('webhookUrlLogsInput').value.trim();
+    if (dbRef) {
+      dbRef.child('settings').update({ webhookUrl: url, webhookUrlLogs: urlLogs }).then(() => {
+        alert("Discord Webhook を保存しました！");
+      }).catch(e => alert("エラー: " + e.message));
+    }
+  }
+
+  function sendWebhookGeneral(message) {
+    if (!webhookUrl) return;
+    fetch(webhookUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username: `${roomName || '飲食店'} 管理システム`, content: message })
+    }).catch(e => console.log('Webhook error', e));
+  }
+
+  function sendWebhookLogs(message) {
+    const targetUrl = webhookUrlLogs || webhookUrl; 
+    if (!targetUrl) return;
+    fetch(targetUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username: `${roomName || '飲食店'} 取引ログ`, content: message })
+    }).catch(e => console.log('Webhook error', e));
+  }
+
+  function addLogEntry(type, staff, details, price) {
+    if (!dbRef) return;
+    const dateStr = new Date().toLocaleString('ja-JP', { month:'numeric', day:'numeric', hour:'2-digit', minute:'2-digit' });
+    const logData = { type: type, staff: staff, details: details, price: price, date: dateStr, timestamp: firebase.database.ServerValue.TIMESTAMP };
+    dbRef.child('logs').push(logData);
+    
+    const cleanType = type.replace(/[^販売買取出]/g, ''); 
+    const msg = `**【${cleanType}ログ】**\n👤 担当: ${staff}\n📝 内容: ${details}\n💰 金額: $${Number(price).toLocaleString()}\n🕒 日時: ${dateStr}`;
+    sendWebhookLogs(msg);
+  }
+
+  function addManualLog() {
+    if (!myStaffName) return alert("左のパネルでスタッフ名を選んで『出勤』してから記録してください！");
+    const type = document.getElementById('logType').value;
+    const details = document.getElementById('logDetails').value.trim();
+    const price = document.getElementById('logPrice').value;
+    if (!details) return alert("取引内容を入力してください！");
+    
+    addLogEntry(type, myStaffName, details, price || 0);
+    document.getElementById('logDetails').value = ''; document.getElementById('logPrice').value = '';
+  }
+
+  function checkoutCart() {
+    if (cart.length === 0) return alert("カートが空です！");
+    if (!myStaffName) return alert("左のパネルでスタッフ名を選んで『出勤』してからお会計をしてください！");
+    
+    const details = cart.map(c => `${c.recipe.name} × ${c.qty}`).join(", ");
+    const totalPrice = cart.reduce((sum, item) => sum + ((item.recipe.price || 0) * item.qty), 0);
+    
+    if(confirm(`【お会計の確認】\n合計金額: $${totalPrice.toLocaleString()}\n\nこの内容で販売を確定し、ログに記録しますか？`)) {
+      addLogEntry("🟢 販売 (売上)", myStaffName, details, totalPrice);
+      cart = []; renderCart(); alert("お会計が完了し、ログに記録されました！");
+    }
+  }
+
+  function renderLogs() {
+    const list = document.getElementById('logsList');
+    list.innerHTML = '';
+    if(logsData.length === 0) {
+      list.innerHTML = '<li style="color:#888; justify-content:center; border:none; background:transparent;">ログはまだありません</li>';
+      return;
+    }
+    logsData.forEach(log => {
+      const isSale = log.type.includes('販売');
+      const badgeColor = isSale ? 'var(--lettuce-green)' : 'var(--ketchup-red)';
+      list.innerHTML += `
+        <li style="flex-direction: column; align-items: flex-start; gap: 8px; margin-bottom: 10px; border-radius:10px; border:2px solid #EEE; background:white;">
+          <div style="width: 100%; display: flex; justify-content: space-between; font-size: 13px; color: #888;">
+            <span>🕒 ${log.date}</span><span>👤 ${log.staff}</span>
+          </div>
+          <div style="font-size: 16px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+            <span style="background: ${badgeColor}; color: white; padding: 4px 10px; border-radius: 8px; font-size: 13px; font-weight:bold;">${log.type}</span>
+            <span style="color: var(--meat-brown);">${log.details}</span> 
+            <strong style="margin-left: auto; color:${isSale ? 'var(--mustard-dark)' : 'var(--ketchup-dark)'};">$${Number(log.price).toLocaleString()}</strong>
+          </div>
+        </li>
+      `;
+    });
+    list.scrollTop = list.scrollHeight;
+  }
+
+  // ==============================
+  // 重さ計算・データ同期・各種保存処理
+  // ==============================
+  function formatWeight(kg) {
+    if (kg === 0) return '0g';
+    if (kg < 1) return Math.round(kg * 1000) + 'g';
+    else return Number(kg.toFixed(3)) + 'kg';
+  }
+
+  function syncData() {
+    if(!dbRef) return;
+    dbRef.child('materials').set(materials);
+    dbRef.child('recipes').set(recipes);
+    dbRef.child('tags').set(tags);
+    dbRef.child('staffs').set(staffs); // ★ スタッフ一覧も保存
+  }
+
   function saveTag() {
     const name = document.getElementById('tagName').value.trim();
     if (!name || tags.includes(name)) return;
-    tags.push(name);
-    syncData(); 
-    document.getElementById('tagName').value = '';
+    tags.push(name); syncData(); document.getElementById('tagName').value = '';
   }
-
   function deleteTag(index) {
-    if (confirm("カテゴリーを削除しますか？")) {
-      tags.splice(index, 1);
-      syncData();
-    }
+    if (confirm("カテゴリーを削除しますか？")) { tags.splice(index, 1); syncData(); }
   }
 
   function saveMaterial() {
     const name = document.getElementById('matName').value.trim();
     let weight = parseFloat(document.getElementById('matWeight').value) || 0;
     const unit = document.getElementById('matWeightUnit').value;
-
     if (!name) return alert("食材名を入力してください！");
     if (materials.some(m => m.name === name)) return alert("その食材はすでに登録されています！");
-
     if (unit === 'g') weight = weight / 1000;
 
-    materials.push({ name: name, weight: weight });
-    syncData();
-    document.getElementById('matName').value = ''; 
-    document.getElementById('matWeight').value = '';
-    document.getElementById('matWeightUnit').value = 'kg'; // kgに戻す
+    materials.push({ name: name, weight: weight }); syncData();
+    document.getElementById('matName').value = ''; document.getElementById('matWeight').value = ''; document.getElementById('matWeightUnit').value = 'kg'; 
   }
-
   function deleteMaterial(index) {
-    if (confirm("食材を削除しますか？")) {
-      materials.splice(index, 1);
-      syncData();
-    }
+    if (confirm("食材を削除しますか？")) { materials.splice(index, 1); syncData(); }
   }
 
   function resetRecipeForm() {
     editRecipeIndex = null;
-    document.getElementById('itemName').value = ''; 
-    document.getElementById('itemImage').value = ''; 
-    document.getElementById('itemPrice').value = ''; // ★ 金額リセット
-    document.getElementById('itemWeight').value = '';
-    document.getElementById('itemWeightUnit').value = 'kg'; // kgに戻す
+    document.getElementById('itemName').value = ''; document.getElementById('itemImage').value = ''; 
+    document.getElementById('itemPrice').value = ''; document.getElementById('itemWeight').value = '';
+    document.getElementById('itemWeightUnit').value = 'kg'; 
     document.getElementById('recipeMaterialsContainer').innerHTML = '';
     document.querySelectorAll('.recipe-tag-checkbox').forEach(cb => cb.checked = false);
     addRecipeMaterialRow();
@@ -648,16 +995,13 @@
     document.getElementById('saveRecipeBtn').style.boxShadow = "0 6px 0 var(--ketchup-dark)";
   }
 
-  // ★ メニューの保存処理
   function saveRecipe() {
     const name = document.getElementById('itemName').value.trim();
     const image = document.getElementById('itemImage').value.trim();
-    let price = parseInt(document.getElementById('itemPrice').value) || 0; // ★ 金額を取得
+    let price = parseInt(document.getElementById('itemPrice').value) || 0; 
     let weight = parseFloat(document.getElementById('itemWeight').value) || 0;
     const unit = document.getElementById('itemWeightUnit').value;
-
     if (!name) return alert("メニュー名を入力してください！");
-
     if (unit === 'g') weight = weight / 1000;
 
     const selectedTags = Array.from(document.querySelectorAll('.recipe-tag-checkbox:checked')).map(cb => cb.value);
@@ -666,59 +1010,41 @@
     const qtys = document.querySelectorAll('.recipe-mat-qty');
 
     for (let i = 0; i < selects.length; i++) {
-      if (selects[i].value && parseFloat(qtys[i].value) > 0) {
-        usedMaterials.push({ name: selects[i].value, qty: parseFloat(qtys[i].value) });
-      }
+      if (selects[i].value && parseFloat(qtys[i].value) > 0) usedMaterials.push({ name: selects[i].value, qty: parseFloat(qtys[i].value) });
     }
-
     const newRecipe = { name, image, price: price, weight: weight, materials: usedMaterials, tags: selectedTags };
 
-    if (editRecipeIndex !== null) {
-      recipes[editRecipeIndex] = newRecipe;
-    } else {
-      recipes.push(newRecipe);
+    if (editRecipeIndex !== null) { recipes[editRecipeIndex] = newRecipe; } 
+    else { 
+      recipes.push(newRecipe); 
+      sendWebhookGeneral(`🍔 新しいメニュー **「${name}」** が開発されました！\n💰 価格: $${price.toLocaleString()}\n📦 重さ: ${formatWeight(weight)}`);
     }
     
-    syncData(); 
-    resetRecipeForm();
-    document.getElementById('btn-recipes').click();
+    syncData(); resetRecipeForm(); switchTab('tab-recipes');
   }
 
   function editRecipe(index) {
-    const recipe = recipes[index];
-    editRecipeIndex = index;
-
-    document.getElementById('itemName').value = recipe.name;
-    document.getElementById('itemImage').value = recipe.image || '';
-    document.getElementById('itemPrice').value = recipe.price || 0; // ★ 金額をセット
-    document.getElementById('itemWeight').value = recipe.weight;
+    const recipe = recipes[index]; editRecipeIndex = index;
+    document.getElementById('itemName').value = recipe.name; document.getElementById('itemImage').value = recipe.image || '';
+    document.getElementById('itemPrice').value = recipe.price || 0; document.getElementById('itemWeight').value = recipe.weight;
     document.getElementById('itemWeightUnit').value = 'kg'; 
 
-    document.querySelectorAll('.recipe-tag-checkbox').forEach(cb => {
-      cb.checked = recipe.tags && recipe.tags.includes(cb.value);
-    });
+    document.querySelectorAll('.recipe-tag-checkbox').forEach(cb => { cb.checked = recipe.tags && recipe.tags.includes(cb.value); });
 
-    const container = document.getElementById('recipeMaterialsContainer');
-    container.innerHTML = '';
-    if (recipe.materials && recipe.materials.length > 0) {
-      recipe.materials.forEach(m => addRecipeMaterialRow(m.name, m.qty));
-    } else {
-      addRecipeMaterialRow();
-    }
+    const container = document.getElementById('recipeMaterialsContainer'); container.innerHTML = '';
+    if (recipe.materials && recipe.materials.length > 0) { recipe.materials.forEach(m => addRecipeMaterialRow(m.name, m.qty)); } 
+    else { addRecipeMaterialRow(); }
 
     document.getElementById('createTabTitle').innerText = "🍔 既存メニューを編集する";
     document.getElementById('saveRecipeBtn').innerText = "🔄 この内容で上書き更新する";
     document.getElementById('saveRecipeBtn').style.background = "var(--mustard-dark)";
     document.getElementById('saveRecipeBtn').style.boxShadow = "0 6px 0 #E65100";
-
-    switchTab('tab-create', document.getElementById('btn-create'));
+    switchTab('tab-create');
   }
 
   function deleteRecipe(index) {
     if (confirm("このメニューを削除しますか？")) {
-      recipes.splice(index, 1);
-      syncData();
-      cart = cart.filter(item => item.recipe.name !== recipes[index]?.name);
+      recipes.splice(index, 1); syncData(); cart = cart.filter(item => item.recipe.name !== recipes[index]?.name);
     }
   }
 
@@ -726,57 +1052,35 @@
   // 💾 JSONのダウンロード・アップロード
   // ==============================
   function exportData() {
-    const dataToExport = {
-      materials: materials,
-      recipes: recipes,
-      tags: tags
-    };
+    const dataToExport = { roomName: roomName, materials: materials, recipes: recipes, tags: tags, staffs: staffs, settings: { webhookUrl: webhookUrl, webhookUrlLogs: webhookUrlLogs }, logs: logsData };
     const jsonStr = JSON.stringify(dataToExport, null, 2);
     const blob = new Blob([jsonStr], { type: "application/json" });
     const url = URL.createObjectURL(blob);
-    
-    const a = document.createElement("a");
-    a.href = url;
-    
+    const a = document.createElement("a"); a.href = url;
     const d = new Date();
     const dateStr = `${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, '0')}${String(d.getDate()).padStart(2, '0')}`;
     const safeRoomName = roomId ? roomId.replace(/[\.\#\$\[\]]/g, '_') : 'shop';
     a.download = `${safeRoomName}_data_${dateStr}.json`;
-    
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+    document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
   }
 
   function importData(event) {
     const file = event.target.files[0];
     if (!file) return;
-
     const reader = new FileReader();
     reader.onload = function(e) {
       try {
         const importedData = JSON.parse(e.target.result);
-        
         if (confirm("🚨 注意 🚨\n現在のルームのデータは全て消去され、アップロードしたファイルの内容で【すべて上書き】されます。\n本当に復元してよろしいですか？")) {
           dbRef.set({
-            materials: importedData.materials || [],
-            recipes: importedData.recipes || [],
-            tags: importedData.tags || ['メイン', 'ドリンク', 'サイド', 'セット']
-          }).then(() => {
-            alert("✅ データのアップロード（復元）が完了しました！\n数秒後に同じルームのメンバー全員の画面に反映されます。");
-            event.target.value = ''; 
-          }).catch(error => {
-            alert("❌ エラーが発生しました: " + error.message);
-            event.target.value = '';
-          });
-        } else {
-          event.target.value = ''; 
-        }
-      } catch (error) {
-        alert("❌ ファイルの読み込みに失敗しました。\n保存した正しいJSONファイルを選択してください。");
-        event.target.value = '';
-      }
+            roomName: roomName,
+            materials: importedData.materials || [], recipes: importedData.recipes || [], 
+            tags: importedData.tags || ['メイン', 'ドリンク', 'サイド', 'セット'],
+            staffs: importedData.staffs || [],
+            settings: importedData.settings || {}, logs: importedData.logs || {} 
+          }).then(() => { alert("✅ 復元が完了しました！"); event.target.value = ''; }).catch(error => { alert("❌ エラー: " + error.message); event.target.value = ''; });
+        } else { event.target.value = ''; }
+      } catch (error) { alert("❌ ファイル読み込み失敗"); event.target.value = ''; }
     };
     reader.readAsText(file);
   }
@@ -785,8 +1089,7 @@
   // 描画系の関数
   // ==============================
   function renderTags() {
-    const list = document.getElementById('tagsList');
-    const checkboxContainer = document.getElementById('recipeTagsContainer');
+    const list = document.getElementById('tagsList'); const checkboxContainer = document.getElementById('recipeTagsContainer');
     list.innerHTML = ''; checkboxContainer.innerHTML = '';
     tags.forEach((tag, index) => {
       list.innerHTML += `<li><span>🏷️ <strong>${tag}</strong></span><button class="btn-red" onclick="deleteTag(${index})">削除</button></li>`;
@@ -796,13 +1099,11 @@
 
   function updateTagDropdowns() {
     const options = '<option value="">すべてのメニュー</option>' + tags.map(t => `<option value="${t}">${t}</option>`).join('');
-    const f1 = document.getElementById('filterTag'); const val1 = f1.value; f1.innerHTML = options; f1.value = val1;
-    const f2 = document.getElementById('calcFilterTag'); const val2 = f2.value; f2.innerHTML = options; f2.value = val2;
+    document.getElementById('filterTag').innerHTML = options; document.getElementById('calcFilterTag').innerHTML = options;
   }
 
   function renderMaterials() {
-    const list = document.getElementById('materialsList');
-    list.innerHTML = '';
+    const list = document.getElementById('materialsList'); list.innerHTML = '';
     materials.forEach((mat, index) => {
       list.innerHTML += `<li><span><strong>${mat.name}</strong> <span style="color:#888; font-weight:normal;">(重さ: ${formatWeight(mat.weight)})</span></span><button class="btn-red" onclick="deleteMaterial(${index})">削除</button></li>`;
     });
@@ -810,66 +1111,52 @@
 
   function getMaterialOptionsHtml(selectedMatName = '') {
     let html = '<option value="">-- 食材を選ぶ --</option>';
-    materials.forEach(mat => {
-      const isSelected = (mat.name === selectedMatName) ? 'selected' : '';
-      html += `<option value="${mat.name}" ${isSelected}>${mat.name} (重さ:${formatWeight(mat.weight)})</option>`;
-    });
+    materials.forEach(mat => { html += `<option value="${mat.name}" ${mat.name === selectedMatName ? 'selected' : ''}>${mat.name} (重さ:${formatWeight(mat.weight)})</option>`; });
     return html;
   }
 
   function addRecipeMaterialRow(matName = '', qty = '') {
-    const container = document.getElementById('recipeMaterialsContainer');
-    const row = document.createElement('div');
-    row.className = 'material-row';
-    row.innerHTML = `
-      <select class="recipe-mat-select">${getMaterialOptionsHtml(matName)}</select>
-      <input type="number" class="recipe-mat-qty" placeholder="個数" min="1" value="${qty}">
-      <button type="button" class="btn-red" style="padding:12px; border-radius:10px;" onclick="this.parentElement.remove()">✖</button>
-    `;
+    const container = document.getElementById('recipeMaterialsContainer'); const row = document.createElement('div'); row.className = 'material-row';
+    row.innerHTML = `<select class="recipe-mat-select">${getMaterialOptionsHtml(matName)}</select><input type="number" class="recipe-mat-qty" placeholder="個数" min="1" value="${qty}"><button type="button" class="btn-red" style="padding:12px; border-radius:10px;" onclick="this.parentElement.remove()">✖</button>`;
     container.appendChild(row);
   }
 
   function updateMaterialDropdowns() {
-    document.querySelectorAll('.recipe-mat-select').forEach(select => {
-      const val = select.value; select.innerHTML = getMaterialOptionsHtml(); if (val) select.value = val;
-    });
+    document.querySelectorAll('.recipe-mat-select').forEach(select => { const val = select.value; select.innerHTML = getMaterialOptionsHtml(); if (val) select.value = val; });
   }
 
+  // ★ レシピ帳の横3列レイアウト対応
   function renderRecipes() {
-    const list = document.getElementById('recipesList');
-    const filterValue = document.getElementById('filterTag').value;
-    list.innerHTML = '';
+    const list = document.getElementById('recipesList'); const filterValue = document.getElementById('filterTag').value; list.innerHTML = '';
     const targetRecipes = filterValue ? recipes.filter(r => r.tags && r.tags.includes(filterValue)) : recipes;
 
     targetRecipes.forEach((recipe) => {
       const realIndex = recipes.indexOf(recipe);
-      const imgUrl = recipe.image ? recipe.image : 'https://via.placeholder.com/120?text=No+Img';
+      const imgUrl = recipe.image ? recipe.image : 'https://via.placeholder.com/150?text=No+Img';
       let tagsHtml = recipe.tags ? recipe.tags.map(t => `<span class="tag-badge">${t}</span>`).join('') : '';
       let matHtml = ''; let totalMatWeight = 0;
 
       if(recipe.materials) {
         recipe.materials.forEach(m => {
           const matWeight = (materials.find(mat => mat.name === m.name) || {weight:0}).weight;
-          const subTotal = matWeight * m.qty;
-          totalMatWeight += subTotal;
+          const subTotal = matWeight * m.qty; totalMatWeight += subTotal;
           matHtml += `<li>${m.name} × ${m.qty}個 <span class="sub-info">(食材の計: ${formatWeight(subTotal)})</span></li>`;
         });
       }
 
-      // ★ レシピ帳に金額を表示
       list.innerHTML += `
         <div class="item-card">
           <img src="${imgUrl}" class="item-image" alt="画像">
           <div class="item-details">
-            <h3>${recipe.name}</h3><div style="margin-bottom:10px;">${tagsHtml}</div>
+            <h3 style="text-align:center;">${recipe.name}</h3><div style="margin-bottom:10px; text-align:center;">${tagsHtml}</div>
             <div class="info-text">💰 <strong>販売価格:</strong> $${(recipe.price || 0).toLocaleString()}</div>
             <div class="info-text">📦 <strong>完成品の重さ:</strong> ${formatWeight(recipe.weight)}</div>
             <div class="info-text">🍳 <strong>必要な食材:</strong> (食材の総重量: ${formatWeight(totalMatWeight)})</div>
             <ul class="recipe-mats">${matHtml || '<li>なし</li>'}</ul>
             
-            <div style="display:flex; gap:10px; margin-top: 15px;">
-              <button class="btn-blue" style="flex:1; background: var(--mustard-dark); box-shadow: 0 4px 0 #E65100; font-size:14px; padding:10px;" onclick="editRecipe(${realIndex})">✏️ 編集する</button>
-              <button class="btn-red" style="flex:1; font-size:14px; padding:10px;" onclick="deleteRecipe(${realIndex})">🗑️ 削除する</button>
+            <div class="item-actions">
+              <button class="btn-blue" style="flex:1; background: var(--mustard-dark); box-shadow: 0 4px 0 #E65100; font-size:14px; padding:10px;" onclick="editRecipe(${realIndex})">✏️ 編集</button>
+              <button class="btn-red" style="flex:1; font-size:14px; padding:10px;" onclick="deleteRecipe(${realIndex})">🗑️ 削除</button>
             </div>
           </div>
         </div>
@@ -878,16 +1165,11 @@
   }
 
   function renderCalcMenu() {
-    const container = document.getElementById('calcMenuList');
-    const filterValue = document.getElementById('calcFilterTag').value;
-    container.innerHTML = '';
+    const container = document.getElementById('calcMenuList'); const filterValue = document.getElementById('calcFilterTag').value; container.innerHTML = '';
     const targetRecipes = filterValue ? recipes.filter(r => r.tags && r.tags.includes(filterValue)) : recipes;
 
     targetRecipes.forEach(recipe => {
-      const realIndex = recipes.indexOf(recipe);
-      const imgUrl = recipe.image ? recipe.image : 'https://via.placeholder.com/90?text=No+Img';
-      
-      // ★ オーダーボタンに金額を表示
+      const realIndex = recipes.indexOf(recipe); const imgUrl = recipe.image ? recipe.image : 'https://via.placeholder.com/90?text=No+Img';
       container.innerHTML += `
         <div class="calc-menu-btn" onclick="addToCart(${realIndex})">
           <img src="${imgUrl}" alt="画像">
@@ -908,31 +1190,14 @@
     if (existing) { existing.qty += 1; } else { cart.push({ recipe: recipe, qty: 1 }); }
     renderCart();
   }
-
   function changeCartQty(index, amount) {
-    cart[index].qty += amount;
-    if (cart[index].qty <= 0) cart.splice(index, 1);
-    renderCart();
+    cart[index].qty += amount; if (cart[index].qty <= 0) cart.splice(index, 1); renderCart();
   }
-
   function updateCartQty(index, value) {
-    let newQty = parseInt(value, 10);
-    if (isNaN(newQty) || newQty <= 0) {
-      cart.splice(index, 1);
-    } else {
-      cart[index].qty = newQty;
-    }
-    renderCart();
+    let newQty = parseInt(value, 10); if (isNaN(newQty) || newQty <= 0) { cart.splice(index, 1); } else { cart[index].qty = newQty; } renderCart();
   }
-
-  function removeCartItem(index) {
-    cart.splice(index, 1);
-    renderCart();
-  }
-
-  function clearCart() {
-    if(cart.length > 0 && confirm("オーダーをすべてクリアしますか？")) { cart = []; renderCart(); }
-  }
+  function removeCartItem(index) { cart.splice(index, 1); renderCart(); }
+  function clearCart() { if(cart.length > 0 && confirm("オーダーをすべてクリアしますか？")) { cart = []; renderCart(); } }
 
   function renderCart() {
     const cartList = document.getElementById('cartList');
@@ -941,24 +1206,16 @@
     const totalMaterialsEl = document.getElementById('cartTotalMaterials');
 
     cartList.innerHTML = '';
-    let totalWeight = 0; 
-    let totalPrice = 0; // ★ 合計金額用変数
-    let materialTotals = {};
+    let totalWeight = 0; let totalPrice = 0; let materialTotals = {};
 
     if (cart.length === 0) {
       cartList.innerHTML = '<li style="color:#888; text-align:center; font-weight:normal; border:none; box-shadow:none;">左からメニューをタップして追加</li>';
-      totalWeightEl.innerText = '0g'; 
-      totalPriceEl.innerText = '$0'; // ★ 0リセット
-      totalMaterialsEl.innerHTML = '<li style="color:#888; font-weight:normal;">なし</li>'; 
-      return;
+      totalWeightEl.innerText = '0g'; totalPriceEl.innerText = '$0'; totalMaterialsEl.innerHTML = '<li style="color:#888; font-weight:normal;">なし</li>'; return;
     }
 
     cart.forEach((item, index) => {
-      const itemTotalWeight = (item.recipe.weight * item.qty);
-      const itemTotalPrice = (item.recipe.price || 0) * item.qty; // ★ アイテムの合計金額
-      
-      totalWeight += itemTotalWeight;
-      totalPrice += itemTotalPrice; // ★ 全体の合計金額に加算
+      const itemTotalWeight = (item.recipe.weight * item.qty); const itemTotalPrice = (item.recipe.price || 0) * item.qty; 
+      totalWeight += itemTotalWeight; totalPrice += itemTotalPrice; 
       
       cartList.innerHTML += `
         <li>
@@ -989,18 +1246,14 @@
     });
 
     totalWeightEl.innerText = formatWeight(totalWeight);
-    totalPriceEl.innerText = '$' + totalPrice.toLocaleString(); // ★ 合計金額を表示
-    
+    totalPriceEl.innerText = '$' + totalPrice.toLocaleString(); 
     totalMaterialsEl.innerHTML = '';
     let totalMatWeight = 0;
     
     for (let mName in materialTotals) {
-      const data = materialTotals[mName];
-      const subTotalWeight = data.qty * data.weight;
-      totalMatWeight += subTotalWeight;
+      const data = materialTotals[mName]; const subTotalWeight = data.qty * data.weight; totalMatWeight += subTotalWeight;
       totalMaterialsEl.innerHTML += `<li style="margin-bottom: 6px; font-size: 16px;">${mName} × <strong style="font-size:18px; color:var(--ketchup-red);">${data.qty}</strong> 個 <span class="sub-info">(重さ計: ${formatWeight(subTotalWeight)})</span></li>`;
     }
-    
     totalMaterialsEl.innerHTML += `<li style="margin-top: 15px; border-top: 3px dashed #CCC; padding-top: 15px; list-style: none; margin-left: -20px; color:var(--ketchup-dark); font-weight:900; font-size:18px;">⚖️ 取り出す食材の総重量: ${formatWeight(totalMatWeight)}</li>`;
   }
 </script>
